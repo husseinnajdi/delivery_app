@@ -18,11 +18,14 @@ return new class extends Migration
             $table->boolean('status')->default(true);
             $table->string('full_name')->nullable();
             $table->integer('phone')->nullable();
-            $table->integer('profit_balance')->nullable();
+            $table->string('picture')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
+
+        
     }
+
     /**
      * Reverse the migrations.
      */
