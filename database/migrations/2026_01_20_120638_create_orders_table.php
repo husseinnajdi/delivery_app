@@ -24,8 +24,7 @@ return new class extends Migration
             $table->double('package_weight');
             $table->double('order_cost');
             $table->timestamp('estimated_delivery')->nullable();
-            $table->string('latitude')->nullable();
-            $table->string('longitude')->nullable();
+            $table->string('location_link')->nullable();
             $table->string('special_instructions')->nullable();
             $table->string('actual_delivery')->nullable();
             $table->string('priority');

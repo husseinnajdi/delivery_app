@@ -11,8 +11,24 @@ class OrderController extends Controller
 {
     public function index()
     {
-        return OrderResource::collection(orders::all());
+        $orders = orders::all();
+    
+        $ordersArray = $orders->map(function ($order) {
+            $orderResource = new OrderResource($order);
+            $orderData = $orderResource->toArray(request());
+    
+            $user = User::find($order->customer_id);
+            $status = status::find($order->status_id);
+    
+            $orderData['customer']['customer_name'] = $user ? $user->username : null;
+            $orderData['status'] = $status ? $status->title : null;
+    
+            return $orderData;
+        });
+    
+        return response()->json($ordersArray);
     }
+    
     public function show($id)
     {
         $order = orders::find($id);
@@ -47,7 +63,7 @@ class OrderController extends Controller
 
     public function showbystatus ($status)
     {
-        $orders=orders::where('status',$status)->get();
+        $orders=orders::where('status_id',$status)->get();
         return OrderResource::collection($orders);
     }
 

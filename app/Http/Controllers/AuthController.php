@@ -16,7 +16,7 @@ class AuthController extends Controller
     
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
-
+        $user->update(['FCMtoken' => $request->FCM_token]);
         return response()->json([
             'user' => $user,
             'token' => $token
@@ -25,6 +25,7 @@ class AuthController extends Controller
 
     public function logout(Request $request){
         $request->user()->currentAccessToken()->delete();
+        User::update(['FCM_token' => null]);
         return response()->json(['message' => 'Successfully logged out']);
     }
     

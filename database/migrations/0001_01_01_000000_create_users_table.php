@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('full_name')->nullable();
             $table->integer('phone')->nullable();
             $table->string('picture')->nullable();
+            $table->string('FCMtoken')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

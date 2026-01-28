@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('type');
-            $table->text('message');
+            $table->text('body');
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

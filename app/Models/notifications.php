@@ -11,7 +11,7 @@ class notifications extends Model
         'id',
         'user_id',
         'type',
-        'message',
+        'body',
         'is_read',
         'title',
         'created_at',
