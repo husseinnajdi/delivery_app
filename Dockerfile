@@ -18,19 +18,23 @@ RUN docker-php-ext-install pdo pdo_mysql
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project
-COPY . /var/www/html
+# Copy project files
+COPY . .
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Laravel permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Fix Laravel permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Apache config for Laravel
-COPY ./apache.conf /etc/apache2/sites-available/000-default.conf
+# Apache config
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
-EXPOSE 80
+# 🔥 IMPORTANT: Listen on Render PORT
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf \
+ && sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-available/000-default.conf
+
+EXPOSE ${PORT}
+
+CMD ["apache2-foreground"]
