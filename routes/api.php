@@ -25,6 +25,7 @@ use Illuminate\Http\Request;
     Route::get('/order/{id}',[OrderController::class,'show']);
     Route::get('/order/driver/{driverid}',[OrderController::class,'showbydriver'])->middleware('auth:sanctum');
     Route::get('/order/status/{status}',[OrderController::class,'showbystatus']);
+    Route::get('/order/userbystatus/{driverid}',[OrderController::class,'showuserbystatus']);
     Route::put('order/assign/{id}',[OrderController::class,'assigndriver']);
     Route::put('order/status/{id}',[OrderController::class,'updatestatus']);
     Route::delete('order/{id}',[OrderController::class,'destroy']);

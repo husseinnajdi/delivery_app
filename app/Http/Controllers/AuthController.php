@@ -27,6 +27,7 @@ class AuthController extends Controller
         $user->update(['FCMtoken' => $request->FCM_token]);
         return response()->json([
             'success' => true,
+            'full_name'=>$user->full_name,
         ])->header('Authorization', 'Bearer ' . $token);
     }
 
