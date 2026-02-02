@@ -9,5 +9,7 @@ class Order_Payment extends Controller
     public function show($id){
         return orderpayment::where('order_id',$id)->get();
     }
-    
+    public function getbyorderid($id){
+        return orderpayment::where('order_id',$id)->first();
+    }
 }

@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class status extends Model
+class warehouses extends Model
 {
-    protected $table = 'status';
     protected $fillable = [
-        'id',
         'name',
-        'description',
+        'address',
+        'phone',
+        'city',
+        'status'
     ];
 }
