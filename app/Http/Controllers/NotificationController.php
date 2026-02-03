@@ -9,7 +9,7 @@ use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\MulticastMessage;
-
+use App\Models\notification_users;
 class NotificationController extends Controller
 {
 
@@ -19,11 +19,8 @@ class NotificationController extends Controller
     }
     public function showbyuser($id)
     {
-        $notification = notifications::find('user_id', $id);
-        if (!$notification) {
-            return response()->json(['message' => 'Notification not found'], 404);
-        }
-        return response()->json($notification);
+        $notificationIds = notification_users::where('user_id', $id)->pluck('notification_id');
+        return notifications::whereIn('id', $notificationIds)->get();
     }
     public function sendnotification(Request $request)
     {
@@ -32,18 +29,8 @@ class NotificationController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to send notification', 'error' => $e->getMessage()], 500);
         }
-        $notification = notifications::create([
-            'user_id' => $request->user_id,
-            'title' => $request->title,
-            'body' => $request->body,
-            'created_at' => now(),
-            'type' => $request->type,
-            'is_read' => false,
-        ]);
-
         return response()->json([
             'message' => 'Notification sent successfully',
-            $notification
         ], 200);
     }
 
@@ -68,10 +55,8 @@ class NotificationController extends Controller
 
     public function notificationsend(array $ids, $title, $body)
     {
-        $factory = (new Factory)->withServiceAccount(base_path('secret_key.json'));
+        $factory = (new Factory)->withServiceAccount(env('FIREBASE_CREDENTIALS'));
         $messaging = $factory->createMessaging();
-
-        // get all FCM tokens of users
         $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
 
         if (empty($tokens)) {
@@ -84,7 +69,24 @@ class NotificationController extends Controller
         foreach ($tokens as $token) {
             $messaging->send($message->withTarget('token', $token));
         }
-
+        try {
+            $notification = notifications::create([
+                'title' => $title,
+                'body' => $body,
+                'type' => 'general',
+                'created_at' => now(),
+                'is_read' => false,
+            ]);
+            foreach ($ids as $userId) {
+                notification_users::create([
+                    'notification_id' => $notification->id,
+                    'user_id' => $userId,
+                    'is_read' => false,
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to save notification', 'error' => $e->getMessage()], 500);
+        }
         return response()->json(['message' => 'Notifications sent successfully', 'count' => count($tokens)], 200);
     }
 
