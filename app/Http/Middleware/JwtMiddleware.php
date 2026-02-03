@@ -11,7 +11,7 @@ use App\Models\User;
 
 class JwtMiddleware
 {
-    public function tokenhandle(Request $request,Closure $next){
+    public function handle(Request $request,Closure $next){
         $header=$request->header('Authorization');
         if(!$header ||!str_starts_with($header,'Bearer ')){
             return response()->json(['error'=>'Token not provided'],401);
