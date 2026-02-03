@@ -17,16 +17,18 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/user/{id}', [UserController::class, 'show']);
 
     // Orders API routes
-    Route::get('/order', [OrderController::class,'index']);
-    Route::post('/order', [OrderController::class,'store']);
-    Route::get('/order/{id}', [OrderController::class,'show']);
-    Route::get('/order/driver', [OrderController::class,'showbydriver']);
-    Route::get('/order/allbydriver',[OrderController::class,'showallbydriver']);
-    Route::get('/order/status/{status}', [OrderController::class,'showbystatus']);
-    Route::get('/order/userbystatus/{driverid}', [OrderController::class,'showuserbystatus']);
-    Route::put('/order/assign/{id}', [OrderController::class,'assigndriver']);
-    Route::put('/order/status/{id}', [OrderController::class,'updatestatus']);
-    Route::delete('/order/{id}', [OrderController::class,'destroy']);
+   // Driver and special routes first
+Route::get('/order/driver', [OrderController::class,'showbydriver']);
+Route::get('/order/allbydriver',[OrderController::class,'showallbydriver']);
+Route::get('/order/status/{status}', [OrderController::class,'showbystatus']);
+
+// Then general routes
+Route::get('/order/{id}', [OrderController::class,'show']);
+Route::get('/order', [OrderController::class,'index']);
+Route::post('/order', [OrderController::class,'store']);
+Route::put('/order/assign/{id}', [OrderController::class,'assigndriver']);
+Route::put('/order/status/{id}', [OrderController::class,'updatestatus']);
+Route::delete('/order/{id}', [OrderController::class,'destroy']);
 
     // Notifications API routes
     Route::post('/sendnotification', [NotificationController::class,'sendnotification']);
@@ -41,7 +43,7 @@ Route::middleware('jwt.auth')->group(function () {
 
 // Authentication API routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout']); // optional JWT check if you implement token revoking
+Route::post('/logout', [AuthController::class, 'logout']); 
 
 // Payment API routes
 Route::get('/payment_transaction/{id}', [Payment_Transaction::class,'show']);

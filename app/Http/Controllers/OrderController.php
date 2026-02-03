@@ -88,7 +88,7 @@ class OrderController extends Controller
     }
     public function showbydriver(Request $request)
     {
-        $status=[2,3,4,5,12];
+        $status=[2,3,4,5,6,7];
         $driverid = $request->auth_user->id;
         $orders = orders::where('delivered_by', $driverid)->whereIn('status_id',$status)->get();
         return OrderResource::collection($orders);
