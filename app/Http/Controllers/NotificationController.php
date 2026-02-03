@@ -33,23 +33,15 @@ class NotificationController extends Controller
             'message' => 'Notification sent successfully',
         ], 200);
     }
-
-    public function sendtomultyusers()
-    {
-        $users = User::all();
-        foreach ($users as $user) {
-            $this->notificationsend($user->id, 'Announcement', 'This is a notification to all users');
-            notifications::create([
-                'user_id' => $user->id,
-                'title' => 'Announcement',
-                'body' => 'This is a notification to all users',
-                'created_at' => now(),
-                'type' => 'announcement',
-                'is_read' => false,
-            ]);
+    public function notifyalluser(Request $request){
+        $userIds = User::pluck('id')->toArray();
+        try {
+            $this->notificationsend($userIds, $request->title, $request->body);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to send notification', 'error' => $e->getMessage()], 500);
         }
         return response()->json([
-            'message' => 'Notifications sent to all users successfully'
+            'message' => 'Notification sent successfully to all users',
         ], 200);
     }
 

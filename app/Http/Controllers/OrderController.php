@@ -81,9 +81,16 @@ class OrderController extends Controller
         return OrderResource::collection($orders);
     }
 
-    public function showbydriver($driverid)
+    public function showallbydriver(Request $request){
+        $driverid = $request->auth_user->id;
+        $orders = orders::where('delivered_by', $driverid)->get();
+        return OrderResource::collection($orders);
+    }
+    public function showbydriver(Request $request)
     {
-        $orders = orders::where('assigned_to', $driverid)->get();
+        $status=[2,3,4,5,12];
+        $driverid = $request->auth_user->id;
+        $orders = orders::where('delivered_by', $driverid)->whereIn('status',$status)->get();
         return OrderResource::collection($orders);
     }
 
