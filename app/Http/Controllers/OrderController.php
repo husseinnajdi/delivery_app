@@ -90,7 +90,7 @@ class OrderController extends Controller
     {
         $status=[2,3,4,5,12];
         $driverid = $request->auth_user->id;
-        $orders = orders::where('delivered_by', $driverid)->whereIn('status',$status)->get();
+        $orders = orders::where('delivered_by', $driverid)->whereIn('status_id',$status)->get();
         return OrderResource::collection($orders);
     }
 
