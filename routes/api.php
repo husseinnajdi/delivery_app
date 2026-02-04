@@ -13,7 +13,7 @@ Route::middleware('jwt.auth')->group(function () {
     // Users API routes
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/user', [UserController::class, 'store']);
-    Route::put('/user/{id}', [UserController::class, 'update']);
+    Route::put('/user', [UserController::class, 'update']);
     Route::get('/me', [UserController::class, 'show']);
 
     // Orders API routes

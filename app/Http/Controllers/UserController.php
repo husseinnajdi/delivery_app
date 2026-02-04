@@ -45,16 +45,20 @@ class UserController extends Controller
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
     }
     
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $user = User::find($id);
+        $user = User::find($request->auth_user->id);
+    
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $user->update($request->only(['username', 'full_name', 'email', 'phone', 'password', 'role', 'status', 'picture']));
+    
+        $data = $request->only(['full_name', 'email', 'phone','picture']);
+    
+        $user->update($data);
+    
         return response()->json(['message' => 'User updated successfully']);
     }
-
 
     public function forgotPassword(Request $request)
     {
