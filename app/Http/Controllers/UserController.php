@@ -6,7 +6,7 @@ use App\Models\Shop;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-
+use App\Http\Resources\UserResources;
 class UserController extends Controller
 {
     public function index()
@@ -76,12 +76,12 @@ class UserController extends Controller
 
 
 
-    public function show($id)
+    public function show(Request $request)
     {
-        $user = User::find($id);
+        $user = User::find($request->auth_user->id);
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        return response()->json($user);
+        return new UserResources($user);
     }
 }
