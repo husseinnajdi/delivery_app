@@ -78,14 +78,17 @@ class NotificationController extends Controller
     
         public function notificationsend(array $ids, $title, $body) {
             // Render standard path for secrets
-            $credentialsPath = env('FIREBASE_CREDENTIALS', base_path('secret_key.json'));
-    
-            if (!file_exists($credentialsPath)) {
-                return ['success' => false, 'message' => 'Credentials missing at ' . $credentialsPath];
+            $jsonCredentials = env('FIREBASE_CREDENTIALS_JSON');
+
+            if (!$jsonCredentials) {
+                return ['success' => false, 'message' => 'FIREBASE_CREDENTIALS_JSON environment variable is missing'];
             }
-    
             try {
-                $factory = (new Factory)->withServiceAccount($credentialsPath);
+                $credentials = json_decode($jsonCredentials, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return ['success' => false, 'message' => 'Invalid JSON in credentials variable'];
+                }
+                $factory = (new Factory)->withServiceAccount($credentials);
                 $messaging = $factory->createMessaging();
                 
                 $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
