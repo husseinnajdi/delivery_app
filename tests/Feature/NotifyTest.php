@@ -16,7 +16,7 @@ test('user can send notification', function () {
     ]);
 
     $token = $loginresponse->headers->get('authorization');
-    $taken=str_replace('Bearer ', '', $token);
+    $token=str_replace('Bearer ', '', $token);
     $response = $this->withHeaders([
         'Authorization' => 'Bearer '.$token,
     ])->postJson('/api/sendnotification', [
