@@ -5,7 +5,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 test('user can send notification', function () {
-    $this->withoutExceptionHandling();
 
     $user = \App\Models\User::factory()->create([
         'password' => bcrypt('password123')
@@ -27,5 +26,5 @@ test('user can send notification', function () {
         'body' => 'This is a test notification message.'
     ]);
 
-    $response->assertStatus(200);
+    expect($response->status())->toBe(200, $response->getContent());
 });
