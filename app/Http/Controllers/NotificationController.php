@@ -70,62 +70,70 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Notification not found for user'], 404);
         }
     }
-public function notificationsend(array $ids, $title, $body) {
-    $credentialsPath = base_path('secret_key.json');
-    if (!file_exists($credentialsPath)) {
-        $credentialsPath = base_path('config/secret_key.json'); 
-    }
+    public function notificationsend(array $ids, $title, $body) {
+        // 1. Get path from Env (defaulting to the Render secret path)
+        $credentialsPath = env('FIREBASE_CREDENTIALS', base_path('secret_key.json'));
     
-    if (!file_exists($credentialsPath)) {
-        return response()->json(['message' => 'Firebase credentials not found'], 500);
-    }
-    
-    try {
-        $factory = (new Factory)->withServiceAccount($credentialsPath);
-        $messaging = $factory->createMessaging();
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Firebase initialization failed', 'error' => $e->getMessage()], 500);
-    }
-    
-    $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
-    
-    if (empty($tokens)) {
-        return response()->json(['message' => 'No FCM tokens found'], 404);
-    }
-    
-    $message = CloudMessage::new()
-        ->withNotification(Notification::create($title, $body));
-    
-    foreach ($tokens as $token) {
-        try {
-            $messaging->send($message->withTarget('token', $token));
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to send notification', 'error' => $e->getMessage()], 500);
-            \Log::error('Failed to send notification to token: ' . $token . ' - ' . $e->getMessage());
+        if (!file_exists($credentialsPath)) {
+            return response()->json(['message' => 'Firebase credentials not found at ' . $credentialsPath], 500);
         }
-    }
-    
-    try {
-        $notification = notifications::create([
-            'title' => $title,
-            'body' => $body,
-            'type' => 'general',
-            'created_at' => now(),
-            'is_read' => false,
-        ]);
         
-        foreach ($ids as $userId) {
-            notification_users::create([
-                'notification_id' => $notification->id,
-                'user_id' => $userId,
+        try {
+            // 2. Initialize using the Factory
+            $factory = (new Factory)->withServiceAccount($credentialsPath);
+            $messaging = $factory->createMessaging();
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Firebase initialization failed', 'error' => $e->getMessage()], 500);
+        }
+        
+        $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
+        
+        if (empty($tokens)) {
+            return response()->json(['message' => 'No FCM tokens found'], 404);
+        }
+        
+        // 3. Optimized Sending: Use sendMulticast for better performance
+        $notification = Notification::create($title, $body);
+        $message = CloudMessage::new()->withNotification($notification);
+        
+        try {
+            // sendMulticast is much faster than a foreach loop for multiple tokens
+            $report = $messaging->sendMulticast($message, $tokens);
+            
+            // Log failures if any
+            if ($report->hasFailures()) {
+                \Log::warning('Some FCM notifications failed: ' . $report->failures()->count());
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'FCM sending failed', 'error' => $e->getMessage()], 500);
+        }
+    
+        // 4. Save to Database (Consider using a Database Transaction here)
+        try {
+            $dbNotification = notifications::create([
+                'title' => $title,
+                'body' => $body,
+                'type' => 'general',
+                'created_at' => now(),
                 'is_read' => false,
             ]);
+            
+            $userData = collect($ids)->map(fn($userId) => [
+                'notification_id' => $dbNotification->id,
+                'user_id' => $userId,
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
+    
+            notification_users::insert($userData); // Bulk insert is better
+            
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to save to DB', 'error' => $e->getMessage()], 500);
         }
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Failed to save notification', 'error' => $e->getMessage()], 500);
+        
+        return response()->json(['message' => 'Notifications processed'], 200);
     }
     
-    return response()->json(['message' => 'Notifications sent successfully', 'count' => count($tokens)], 200);
-}
     
 }
