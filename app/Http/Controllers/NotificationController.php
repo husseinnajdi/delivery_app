@@ -52,45 +52,42 @@ class NotificationController extends Controller
             'message' => 'Notification sent successfully to all users',
         ], 200);
     }
-    public function notificationsend(array $ids, $title, $body)
-    {
-        // 1️⃣ Read the JSON string from environment
-        $firebaseJson = env('FIREBASE_CREDENTIALS');
-    
-        if (!$firebaseJson) {
-            return response()->json(['message' => 'Firebase credentials not set in env'], 500);
+    public function notificationsend(array $ids, $title, $body) {
+        // Get the JSON string from environment variable
+        $firebaseCredentials = env('FIREBASE_CREDENTIALS');
+        
+        if (!$firebaseCredentials) {
+            return response()->json(['message' => 'Firebase credentials not configured'], 500);
         }
-    
-        // 2️⃣ Save to a temporary file
-        $tempPath = storage_path('app/firebase_key.json');
-        file_put_contents($tempPath, $firebaseJson);
-    
-        // 3️⃣ Initialize Firebase using the temp file
-        $factory = (new Factory)->withServiceAccount($tempPath);
+        
+        // Create a temporary file with the credentials
+        $tempFile = tempnam(sys_get_temp_dir(), 'firebase_credentials');
+        file_put_contents($tempFile, $firebaseCredentials);
+        
+        // Now use the temp file path
+        $factory = (new Factory)->withServiceAccount($tempFile);
         $messaging = $factory->createMessaging();
-    
-        // 4️⃣ Get FCM tokens
+        
         $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
-    
+        
         if (empty($tokens)) {
+            // Clean up temp file
+            unlink($tempFile);
             return response()->json(['message' => 'No FCM tokens found'], 404);
         }
-    
-        // 5️⃣ Create the notification message
+        
         $message = CloudMessage::new()
             ->withNotification(Notification::create($title, $body));
-    
-        // 6️⃣ Send to each token
+        
         foreach ($tokens as $token) {
             try {
                 $messaging->send($message->withTarget('token', $token));
-            } catch (\Kreait\Firebase\Exception\MessagingException $e) {
-                // Log the error but continue sending
-                info("Failed to send to token $token: ".$e->getMessage());
+            } catch (\Exception $e) {
+                // Log the error but continue with other tokens
+                \Log::error('Failed to send notification to token: ' . $token . ' - ' . $e->getMessage());
             }
         }
-    
-        // 7️⃣ Save notifications in DB
+        
         try {
             $notification = notifications::create([
                 'title' => $title,
@@ -99,7 +96,7 @@ class NotificationController extends Controller
                 'created_at' => now(),
                 'is_read' => false,
             ]);
-    
+            
             foreach ($ids as $userId) {
                 notification_users::create([
                     'notification_id' => $notification->id,
@@ -108,16 +105,15 @@ class NotificationController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to save notification',
-                'error' => $e->getMessage()
-            ], 500);
+            // Clean up temp file
+            unlink($tempFile);
+            return response()->json(['message' => 'Failed to save notification', 'error' => $e->getMessage()], 500);
         }
-    
-        return response()->json([
-            'message' => 'Notifications sent successfully',
-            'count' => count($tokens)
-        ], 200);
+        
+        // Clean up the temporary file
+        unlink($tempFile);
+        
+        return response()->json(['message' => 'Notifications sent successfully', 'count' => count($tokens)], 200);
     }
     
 }
