@@ -16,4 +16,7 @@ class notifications extends Model
         'title',
         'created_at',
     ];
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
 }
