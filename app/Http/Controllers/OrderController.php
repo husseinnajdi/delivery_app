@@ -21,8 +21,8 @@ class OrderController extends Controller
         $user = User::find($order->customer_id);
         $status = status::find($order->status_id);
 
-        $orderData['customer']['customer_name'] = $user ? $user->username : null;
-        $orderData['status'] = $status ? $status->name : "hefwijfiewj";
+        $orderData['customer']['customer_name'] = $user->username ?? 'Unknown Customer';
+        $orderData['status'] = $status->name?? 'Unknown Status';
 
         return $orderData;
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\notifications;
+use JsonException;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Factory;
@@ -53,26 +54,24 @@ class NotificationController extends Controller
         ], 200);
     }
     public function notificationsend(array $ids, $title, $body) {
-        // Get the JSON string from environment variable
-        $firebaseCredentials = env('FIREBASE_CREDENTIALS');
+        // Path to secret file in Render
+        $credentialsPath = '/etc/secrets/secret_key.json';
         
-        if (!$firebaseCredentials) {
-            return response()->json(['message' => 'Firebase credentials not configured'], 500);
+        // Fallback to local path for development
+        if (!file_exists($credentialsPath)) {
+            $credentialsPath = base_path('secret_key.json');
         }
         
-        // Create a temporary file with the credentials
-        $tempFile = tempnam(sys_get_temp_dir(), 'firebase_credentials');
-        file_put_contents($tempFile, $firebaseCredentials);
+        if (!file_exists($credentialsPath)) {
+            return response()->json(['message' => 'Firebase credentials not found'], 500);
+        }
         
-        // Now use the temp file path
-        $factory = (new Factory)->withServiceAccount($tempFile);
+        $factory = (new Factory)->withServiceAccount($credentialsPath);
         $messaging = $factory->createMessaging();
         
         $tokens = User::whereIn('id', $ids)->pluck('FCMtoken')->filter()->toArray();
         
         if (empty($tokens)) {
-            // Clean up temp file
-            unlink($tempFile);
             return response()->json(['message' => 'No FCM tokens found'], 404);
         }
         
@@ -83,7 +82,7 @@ class NotificationController extends Controller
             try {
                 $messaging->send($message->withTarget('token', $token));
             } catch (\Exception $e) {
-                // Log the error but continue with other tokens
+                return response()->json(['message' => 'Failed to send notification to token: ' . $token, 'error' => $e->getMessage()], 500);
                 \Log::error('Failed to send notification to token: ' . $token . ' - ' . $e->getMessage());
             }
         }
@@ -105,13 +104,8 @@ class NotificationController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            // Clean up temp file
-            unlink($tempFile);
             return response()->json(['message' => 'Failed to save notification', 'error' => $e->getMessage()], 500);
         }
-        
-        // Clean up the temporary file
-        unlink($tempFile);
         
         return response()->json(['message' => 'Notifications sent successfully', 'count' => count($tokens)], 200);
     }
