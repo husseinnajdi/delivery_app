@@ -12,17 +12,14 @@ Route::middleware('jwt.auth')->group(function () {
 
     // Users API routes
     Route::get('/users', [UserController::class, 'index']);
-    Route::post('/user', [UserController::class, 'store']);
     Route::put('/user', [UserController::class, 'update']);
     Route::get('/me', [UserController::class, 'show']);
 
     // Orders API routes
-    // Driver and special routes first
     Route::get('/order/driver', [OrderController::class, 'showbydriver']);
     Route::get('/order/allbydriver', [OrderController::class, 'showallbydriver']);
     Route::get('/order/status/{status}', [OrderController::class, 'showbystatus']);
-
-    // Then general routes
+    Route::get('/order/driverarchive', [OrderController::class, 'showdriverarchive']);
     Route::get('/order/{id}', [OrderController::class, 'show']);
     Route::get('/order', [OrderController::class, 'index']);
     Route::post('/order', [OrderController::class, 'store']);
@@ -33,7 +30,7 @@ Route::middleware('jwt.auth')->group(function () {
     // Notifications API routes
     Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/user/{id}', [NotificationController::class, 'showbyuser']);
+    Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);
     Route::post('/notifyalluser', [NotificationController::class, 'notifyalluser']);
 
     // Payment Transactions API routes
@@ -44,6 +41,7 @@ Route::middleware('jwt.auth')->group(function () {
 // Authentication API routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
+Route::post('/user', [UserController::class, 'store']);
 
 // Payment API routes
 Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);

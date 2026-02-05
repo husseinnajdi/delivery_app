@@ -88,6 +88,14 @@ class OrderController extends Controller
         return response()->json($ordersArray);
     }
 
+
+    public function showdriverarchive(Request $request){
+        $status=[6,8,10,13];
+        $driverid=$request->auth_user->id;
+        $orders=orders::where('delivered_by',$driverid)->whereIn('status_id',$status)->get();
+        $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
+        return response()->json($ordersArray);
+    }
     public function showbydriver(Request $request)
     {
         $status = [2,4,5,12];

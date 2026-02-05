@@ -29,18 +29,9 @@ class UserController extends Controller
             'picture' => null,
         ]);
     
-        if ($user->role === 'shop') {
-            Shop::create([
-                'name' => $request->shop_name,
-                'address' => $request->adress,
-                'phone' => $request->shop_phone,
-                'city' => $request->shop_city,
-                'user_id' => $user->id,
-            ]);
-        }
-        dump($user);
-        Log::info('User data:', $user->toArray());
-        dd($request->all());
+        // dump($user);
+        // Log::info('User data:', $user->toArray());
+        // dd($request->all());
     
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
     }

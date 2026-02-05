@@ -17,8 +17,9 @@ class NotificationController extends Controller
     {
         return notifications::all();
     }
-    public function showbyuser($id)
+    public function showbyuser(Request $request)
     {
+        $id=$request->auth_user->id;
         $notificationIds = notification_users::where('user_id', $id)->pluck('notification_id');
         return notifications::whereIn('id', $notificationIds)->get();
     }

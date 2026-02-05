@@ -1,31 +1,20 @@
 <?php
-
-
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
 
 uses(RefreshDatabase::class);
-test('user can send notification', function () {
-    $this->withoutExceptionHandling();
-
-    $user = \App\Models\User::factory()->create([
+test('get orders api', function () {
+    $user=User::factory()->create([
         'password' => bcrypt('password123')
     ]);
-
     $loginresponse = $this->postJson('/api/login', [
         'email' => $user->email,
         'password' => 'password123'
     ]);
-
     $token = $loginresponse->headers->get('authorization');
-    $taken=str_replace('Bearer ', '', $token);
+
     $response = $this->withHeaders([
         'Authorization' => 'Bearer '.$token,
-    ])->postJson('/api/sendnotification', [
-        'user_id' => [$user->id],
-        'title' => 'Test Notification',
-        'type'=> 'info',
-        'body' => 'This is a test notification message.'
-    ]);
-
+    ])->getJson('/api/order');
     $response->assertStatus(200);
 });
