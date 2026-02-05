@@ -32,7 +32,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);
     Route::post('/notifyalluser', [NotificationController::class, 'notifyalluser']);
-    Route::put('/notifications/markasread/{id}', [NotificationController::class, 'markasread']);
+    Route::put('/notifications/markasread', [NotificationController::class, 'markasread']);
 
     // Payment Transactions API routes
     Route::put('/payment_transaction/{id}', [Payment_Transaction::class, 'update']);

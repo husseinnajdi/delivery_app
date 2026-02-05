@@ -54,8 +54,9 @@ class NotificationController extends Controller
         ], 200);
     }
 
-    public function markasread(Request $request, $id)
+    public function markasread(Request $request)
     {
+        $id = $request->id;
         $notificationUser = notification_users::where('notification_id', $id)
             ->where('user_id', $request->auth_user->id)
             ->first();
