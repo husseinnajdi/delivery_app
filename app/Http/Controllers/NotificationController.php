@@ -11,6 +11,8 @@ use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\MulticastMessage;
 use App\Models\notification_users;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 class NotificationController extends Controller
 {
 
