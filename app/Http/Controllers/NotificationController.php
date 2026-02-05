@@ -108,7 +108,6 @@ class NotificationController extends Controller
                         'title' => $title,
                         'body' => $body,
                         'type' => 'general',
-                        'is_read' => false,
                     ]);
     
                     $userData = collect($ids)->map(fn($userId) => [

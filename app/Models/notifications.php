@@ -12,7 +12,6 @@ class notifications extends Model
         'user_id',
         'type',
         'body',
-        'is_read',
         'title',
         'created_at',
     ];
