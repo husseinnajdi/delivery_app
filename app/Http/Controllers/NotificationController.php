@@ -58,7 +58,7 @@ class NotificationController extends Controller
             // Wrap user_id in an array if it's a single ID
             $userIds = is_array($request->user_id) ? $request->user_id : [$request->user_id];
             
-            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->orderr_id);
+            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->order_id);
     
             if ($result['success']) {
                 return response()->json(['message' => $result['message']], 200);
