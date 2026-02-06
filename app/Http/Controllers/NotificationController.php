@@ -68,7 +68,7 @@ class NotificationController extends Controller
     
         public function notifyalluser(Request $request) {
             $userIds = User::pluck('id')->toArray();
-            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->orderr_id);
+            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->order_id);
     
             if ($result['success']) {
                 return response()->json(['message' => 'Sent to all users'], 200);
