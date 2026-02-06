@@ -58,7 +58,7 @@ class NotificationController extends Controller
             // Wrap user_id in an array if it's a single ID
             $userIds = is_array($request->user_id) ? $request->user_id : [$request->user_id];
             
-            $result = $this->notificationsend($userIds, $request->title, $request->body);
+            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->orderr_id);
     
             if ($result['success']) {
                 return response()->json(['message' => $result['message']], 200);
@@ -68,7 +68,7 @@ class NotificationController extends Controller
     
         public function notifyalluser(Request $request) {
             $userIds = User::pluck('id')->toArray();
-            $result = $this->notificationsend($userIds, $request->title, $request->body);
+            $result = $this->notificationsend($userIds, $request->title, $request->body,$request->orderr_id);
     
             if ($result['success']) {
                 return response()->json(['message' => 'Sent to all users'], 200);
@@ -76,7 +76,7 @@ class NotificationController extends Controller
             return response()->json(['message' => 'Global send failed', 'error' => $result['error'] ?? ''], 500);
         }
     
-        public function notificationsend(array $ids, $title, $body) {
+        public function notificationsend(array $ids, $title, $body,$order_id) {
             // Render standard path for secrets
             $jsonCredentials = env('FIREBASE_CREDENTIALS_JSON');
 
@@ -103,10 +103,11 @@ class NotificationController extends Controller
                 $report = $messaging->sendMulticast($message, $tokens);
     
                 // Database Transaction: Ensure DB is only updated if Firebase call didn't crash
-                DB::transaction(function () use ($ids, $title, $body) {
+                DB::transaction(function () use ($ids, $title, $body,$order_id) {
                     $dbNotification = notifications::create([
                         'title' => $title,
                         'body' => $body,
+                        'order_id' => $order_id,
                         'type' => 'general',
                     ]);
     
