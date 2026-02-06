@@ -22,16 +22,25 @@ class NotificationController extends Controller
     }
     public function showbyuser(Request $request)
     {
-        $id = $request->auth_user->id;
+        $userId = $request->auth_user->id;
     
-        $notificationIds = notification_users::where('user_id', $id)
-            ->pluck('notification_id');
-        $notifications = notifications::whereIn('id', $notificationIds)
-            ->orderBy('created_at', 'desc')
+        $notifications = notifications::join(
+                'notification_users',
+                'notifications.id',
+                '=',
+                'notification_users.notification_id'
+            )
+            ->where('notification_users.user_id', $userId)
+            ->select(
+                'notifications.*',
+                'notification_users.is_read'
+            )
+            ->orderBy('notifications.created_at', 'desc')
             ->get();
     
-        return $notifications;
+        return response()->json($notifications);
     }
+        
     
 
     public function markasread(Request $request)

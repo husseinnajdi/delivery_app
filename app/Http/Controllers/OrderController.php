@@ -61,7 +61,8 @@ class OrderController extends Controller
             $notificationController->notificationsend(
                 [$request->delivered_by],
                 "New Order Assigned",
-                "You have been assigned a new order with ID: " . $order->id
+                "You have been assigned a new order with ID: " . $order->id,
+                $order->id
             );
         } catch (\Exception $e) {
             Log::error('Driver assign but Failed to send notification: ' . $e->getMessage());
