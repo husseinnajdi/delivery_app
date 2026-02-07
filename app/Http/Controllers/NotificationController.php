@@ -40,7 +40,7 @@ class NotificationController extends Controller
             ->orderBy('notifications.created_at', 'desc')
             ->paginate(10);
 
-        return response()->json($notifications);
+            return response()->json($notifications->items());
     }
 
 

@@ -96,7 +96,7 @@ class OrderController extends Controller
         $driverid=$request->auth_user->id;
         $orders=orders::where('delivered_by',$driverid)->whereIn('status_id',$status)->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
-        return response()->json($ordersArray);
+        return response()->json($ordersArray->items());
     }
     public function showbydriver(Request $request)
     {
