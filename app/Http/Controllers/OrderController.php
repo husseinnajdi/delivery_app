@@ -7,12 +7,13 @@ use App\Models\orders;
 use App\Http\Resources\OrderResource;
 use App\Models\User;
 use App\Models\status;
-use App\Http\Controllers\NotificationController;
+use App\Services\NotificationService;
 use Log;
 use App\Http\Controllers\account_balances;
 
 class OrderController extends Controller
 {
+     public function __construct(private NotificationService $service) {}
     private function formatOrder(orders $order)
     {
         $orderResource = new OrderResource($order);
@@ -57,8 +58,8 @@ class OrderController extends Controller
         $order->save();
 
         try {
-            $notificationController = new NotificationController();
-            $notificationController->notificationsend(
+            
+            $this->service->send(
                 [$request->delivered_by],
                 "New Order Assigned",
                 "You have been assigned a new order with ID: " . $order->id,
@@ -93,7 +94,7 @@ class OrderController extends Controller
     public function showdriverarchive(Request $request){
         $status=[6,8,10,13];
         $driverid=$request->auth_user->id;
-        $orders=orders::where('delivered_by',$driverid)->whereIn('status_id',$status)->get();
+        $orders=orders::where('delivered_by',$driverid)->whereIn('status_id',$status)->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
