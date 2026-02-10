@@ -11,38 +11,38 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('jwt.auth')->group(function () {
 
     // Users API routes
-    Route::get('/users', [UserController::class, 'index']);
-    Route::put('/user', [UserController::class, 'update']);
-    Route::get('/me', [UserController::class, 'show']);
+    //Route::get('/users', [UserController::class, 'index']);
+    Route::put('/user', [UserController::class, 'update']);//done
+    Route::get('/me', [UserController::class, 'show']);//done
 
     // Orders API routes
-    Route::get('/order/driver', [OrderController::class, 'showbydriver']);
-    Route::get('/order/allbydriver', [OrderController::class, 'showallbydriver']);
-    Route::get('/order/status/{status}', [OrderController::class, 'showbystatus']);
-    Route::get('/order/driverarchive', [OrderController::class, 'showdriverarchive']);
-    Route::get('/order/{id}', [OrderController::class, 'show']);
-    Route::get('/order', [OrderController::class, 'index']);
-    Route::post('/order', [OrderController::class, 'store']);
-    Route::put('/order/assign/{id}', [OrderController::class, 'assigndriver']);
-    Route::put('/order/status/{id}', [OrderController::class, 'updatestatus']);
-    Route::delete('/order/{id}', [OrderController::class, 'destroy']);
+    Route::get('/order/driver', [OrderController::class, 'showbydriver']);//done
+    Route::get('/order/allbydriver', [OrderController::class, 'showallbydriver']);//done
+    //Route::get('/order/status/{status}', [OrderController::class, 'showbystatus']);
+    Route::get('/order/driverarchive', [OrderController::class, 'showdriverarchive']);//done
+    Route::get('/order', [OrderController::class, 'show']);//done
+    //Route::get('/order', [OrderController::class, 'index']);
+    //Route::post('/order', [OrderController::class, 'store']);
+    Route::put('/order/assign', [OrderController::class, 'assigndriver']);//done
+    Route::put('/order/status', [OrderController::class, 'updatestatus']);//done
+    //Route::delete('/order/{id}', [OrderController::class, 'destroy']);
 
     // Notifications API routes
     Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);
-    Route::post('/notifyalluser', [NotificationController::class, 'notifyalluser']);
-    Route::put('/notifications/markasread', [NotificationController::class, 'markasread']);
+    //Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);//done
+    //Route::post('/notifyalluser', [NotificationController::class, 'notifyalluser']);
+    Route::put('/notifications/markasread', [NotificationController::class, 'markasread']);//done
 
     // Payment Transactions API routes
-    Route::put('/payment_transaction/{id}', [Payment_Transaction::class, 'update']);
+    Route::put('/payment_transaction', [Payment_Transaction::class, 'update']);
 
 });
 
 // Authentication API routes
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);//done
 Route::post('/logout', [AuthController::class, 'logout']);
-Route::post('/user', [UserController::class, 'store']);
+//Route::post('/user', [UserController::class, 'store']);
 
 // Payment API routes
 Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);

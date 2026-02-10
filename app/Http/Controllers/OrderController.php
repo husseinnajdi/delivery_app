@@ -10,21 +10,26 @@ use App\Models\status;
 use App\Services\NotificationService;
 use Log;
 use App\Http\Controllers\account_balances;
+use App\Models\Addresse;
 
 class OrderController extends Controller
 {
-     public function __construct(private NotificationService $service) {}
+    public function __construct(private NotificationService $service)
+    {
+    }
     private function formatOrder(orders $order)
     {
         $orderResource = new OrderResource($order);
         $orderData = $orderResource->toArray(request());
-
+        $address = Addresse::where('customer_id', $order->customer_id)->first();
         $user = User::find($order->customer_id);
         $status = status::find($order->status_id);
 
         $orderData['customer']['customer_name'] = $user->username ?? 'Unknown Customer';
-        $orderData['status'] = $status->name?? 'Unknown Status';
-
+        $orderData['customer']['phone'] = $user->phone ?? 'Unknown Phone';
+        $orderData['status'] = $status->name ?? 'Unknown Status';
+        $orderData['deliveryLocation']['address'] = $address->city ?? 'Unknown Phone';
+        $orderData['deliveryLocation']['link'] = $address->location_url ?? 'Unknown Link';
         return $orderData;
     }
 
@@ -35,10 +40,11 @@ class OrderController extends Controller
         return response()->json($ordersArray);
     }
 
-    public function show($id)
+    public function show(Request $request)
     {
-        $order = orders::find($id);
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
+        $order = orders::find($request->order_id);
+        if (!$order)
+            return response()->json(['message' => 'Order not found'], 404);
 
         return response()->json($this->formatOrder($order));
     }
@@ -49,24 +55,33 @@ class OrderController extends Controller
         return response()->json($this->formatOrder($order), 201);
     }
 
-    public function assigndriver(Request $request, $id)
+    public function assigndriver(Request $request, )
     {
-        $order = orders::find($id);
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
-
+        $order = orders::find($request->order_id);
+        if (!$order)
+            return response()->json(['message' => 'Order not found'], 404);
         $order->delivered_by = $request->delivered_by;
         $order->save();
-
+        if ($request->delivered_by == $request->auth_user->id) {
+            return response()->json([
+                'message' => 'Driver assigned successfully',
+                'order' => $this->formatOrder($order)
+            ]);
+        }
         try {
-            
             $this->service->send(
                 [$request->delivered_by],
                 "New Order Assigned",
                 "You have been assigned a new order with ID: " . $order->id,
-                $order->id
+                $order->id,
+                $request->auth_user->id
             );
         } catch (\Exception $e) {
             Log::error('Driver assign but Failed to send notification: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Driver assigned but failed to send notification',
+                'order' => $this->formatOrder($order)
+            ], 500);
         }
 
         return response()->json([
@@ -74,14 +89,6 @@ class OrderController extends Controller
             'order' => $this->formatOrder($order)
         ]);
     }
-
-    public function showbystatus($status)
-    {
-        $orders = orders::where('status_id', $status)->get();
-        $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
-        return response()->json($ordersArray);
-    }
-
     public function showallbydriver(Request $request)
     {
         $driverid = $request->auth_user->id;
@@ -91,45 +98,56 @@ class OrderController extends Controller
     }
 
 
-    public function showdriverarchive(Request $request){
-        $status=[6,8,10,13];
-        $driverid=$request->auth_user->id;
-        $orders=orders::where('delivered_by',$driverid)->whereIn('status_id',$status)->paginate(10);
+    public function showdriverarchive(Request $request)
+    {
+        $status = [6, 8, 10, 13];
+        $driverid = $request->auth_user->id;
+        $orders = orders::where('delivered_by', $driverid)->whereIn('status_id', $status)->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
-        return response()->json($ordersArray->items());
+        return response()->json($ordersArray);
     }
     public function showbydriver(Request $request)
     {
-        $status = [3,4,5,12];
+        $status = [3, 4, 5, 12];
         $driverid = $request->auth_user->id;
 
         $orders = orders::where('delivered_by', $driverid)
-                        ->whereIn('status_id', $status)
-                        ->get();
+            ->whereIn('status_id', $status)
+            ->get();
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
 
-    public function update(Request $request, $id)
+    // public function update(Request $request, $id)
+    // {
+    //     $order = orders::find($id);
+    //     if (!$order)
+    //         return response()->json(['message' => 'Order not found'], 404);
+
+    //     $order->update($request->all());
+    //     return response()->json($this->formatOrder($order));
+    // }
+
+    public function updatestatus(Request $request)
     {
-        $order = orders::find($id);
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
-
-        $order->update($request->all());
-        return response()->json($this->formatOrder($order));
-    }
-
-    public function updatestatus(Request $request, $id)
-    {
-        $order = orders::find($id);
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
-
-        $order->status = $request->status;
+        $order = orders::find($request->order_id);
+        if (!$order)
+            return response()->json(['message' => 'Order not found', $order], 404);
+        $order->status_id = $request->status;
         $order->save();
-
-        $accountbalance = new account_balances();
         if ($request->status == 6) {
-            $accountbalance->statusupdatebaance($order->delivered_by, -$order->order_cost);
+                $accountbalance = new account_balances();
+                // dd([
+                //     'userId' => $request->auth_user->id,
+                //     'type' => gettype($request->auth_user->id),
+                //     'order_cost' => $order->product_cost,
+                //     'order_cost_type' => gettype($order->product_cost)
+                // ]);
+                try{$accountbalance->statusupdatebalance($request->auth_user->id, $order->product_cost);
+                }catch(\Exception $e){
+                    Log::error('Failed to update account balance: ' . $e->getMessage());
+                    return response()->json(['message' => 'Failed to update account balance'], 500);
+                }
         }
 
         return response()->json($this->formatOrder($order));
@@ -138,7 +156,8 @@ class OrderController extends Controller
     public function destroy($id)
     {
         $order = orders::find($id);
-        if (!$order) return response()->json(['message' => 'Order not found'], 404);
+        if (!$order)
+            return response()->json(['message' => 'Order not found'], 404);
 
         $order->delete();
         return response()->json(['message' => 'Order deleted successfully']);

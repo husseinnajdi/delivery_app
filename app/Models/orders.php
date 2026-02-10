@@ -16,7 +16,7 @@ class orders extends Model
         'customer_phone',
         'package_description',
         'package_weight',
-        'order_cost',
+        'product_cost',
         'estimated_delivery',
         'location_link',
         'special_instructions',
@@ -24,9 +24,13 @@ class orders extends Model
         'priority',
         'status_id',
         'payment_status',
+        'delivered_by',
         'delivery_fee',
         'assigned_to',
         'created_by',
         'confirmed_by',
+    ];
+    protected $casts = [
+        'delivered_by' => 'array',
     ];
 }

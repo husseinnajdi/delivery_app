@@ -11,7 +11,7 @@ use Kreait\Firebase\Messaging\Notification;
 
 class NotificationService
 {
-    public function send(array $userIds, string $title, string $body, $orderId = null)
+    public function send(array $userIds, string $title, string $body, $orderId = null,$sender_user_id)
     {
         $messaging = $this->firebase();
 
@@ -29,9 +29,10 @@ class NotificationService
 
         $messaging->sendMulticast($message, $tokens);
 
-        DB::transaction(function () use ($userIds, $title, $body, $orderId) {
+        DB::transaction(function () use ($userIds, $title, $body, $orderId,$sender_user_id) {
             $notification = notifications::create([
                 'title' => $title,
+                'sender_user_id'=>$sender_user_id,
                 'body' => $body,
                 'order_id' => $orderId,
                 'type' => 'general',

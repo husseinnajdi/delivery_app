@@ -27,17 +27,17 @@ class NotificationController extends Controller
         $userId = $request->auth_user->id;
 
         $notifications = notifications::join(
-            'notification_users',
-            'notifications.id',
+            'notification_recipients',
+            'notification_messages.id',
             '=',
-            'notification_users.notification_id'
+            'notification_recipients.notification_message_id'
         )
-            ->where('notification_users.user_id', $userId)
+            ->where('notification_recipients.recipient_user_id', $userId)
             ->select(
-                'notifications.*',
-                'notification_users.is_read'
+                'notification_messages.*',
+                'notification_recipients.is_read'
             )
-            ->orderBy('notifications.created_at', 'desc')
+            ->orderBy('notification_messages.created_at', 'desc')
             ->paginate(10);
 
             return response()->json($notifications->items());
@@ -47,9 +47,8 @@ class NotificationController extends Controller
 
     public function markasread(Request $request)
     {
-        $id = $request->id;
-        $notificationUser = notification_users::where('notification_id', $id)
-            ->where('user_id', $request->auth_user->id)
+        $notificationUser = notification_users::where('notification_message_id', $request->id)
+            ->where('recipient_user_id', $request->auth_user->id)
             ->first();
 
         if ($notificationUser) {
@@ -65,6 +64,8 @@ class NotificationController extends Controller
     {
         $request->validate([
             'user_id' => 'required',
+            'sender_user_id'=>'required|integer',
+            'order_id'=>'nullable|integer',
             'title' => 'required|string',
             'body' => 'required|string',
         ]);
@@ -77,7 +78,8 @@ class NotificationController extends Controller
             $userIds,
             $request->title,
             $request->body,
-            $request->order_id
+            $request->order_id,
+            $request->sender_user_id
         );
 
         return response()->json(['message' => 'Notification sent']);

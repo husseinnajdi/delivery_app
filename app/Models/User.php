@@ -31,7 +31,8 @@ class User extends Authenticatable
         'status',
         'image',
         'role_subtype_id',
-        'role',
+        'role_id',
+        'profit_balance',
         'FCMtoken',
         'picture',
     ];

@@ -8,6 +8,7 @@ class account_balances extends Model
 {
     protected $table=[
         'user_id',
+        'order_number', 
         'currency_id',
         'total_balance',    
         'due_balance',

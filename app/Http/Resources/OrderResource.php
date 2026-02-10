@@ -15,7 +15,7 @@ class OrderResource extends JsonResource
             'priority' => $this->priority,
             'paymentStatus' => $this->payment_status,
             'createdAt' => $this->created_at,  
-            'total' => $this->order_cost + $this->delivery_fee,
+            'total' => $this->product_cost + $this->delivery_fee,
             'estimated_delivery_time' => $this->estimated_delivery,
             'actual_delivery_time' => $this->actual_delivery,
             'customer' => [

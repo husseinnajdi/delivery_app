@@ -15,7 +15,14 @@ class UserController extends Controller
     }
     public function store(Request $request)
     {
-        $user = User::create([
+        // $request->validate([
+        //     'username' => 'required|string',
+        //     'full_name' => 'required|string',
+        //     'email' => 'required|email|unique:users',
+        //     'phone' => 'required|string',
+        //     'password' => 'required',
+        // ]);
+       try{ $user = User::create([
             'username' => $request->username,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -24,14 +31,18 @@ class UserController extends Controller
             'remember_token' => null,
             'created_at' => now(),
             'updated_at' => now(),
-            'role' => $request->role ?? User::ROLE_USER,
+            'role_id' => $request->role_id ?? User::ROLE_USER,
+            'role_subtype_id'=>$request->role_subtype_id,
             'status' => $request->status ?? true,
-            'picture' => null,
-        ]);
+            'image' => null,
+        ]);}catch(\Exception $e){
+            Log::error('Error creating user: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to create user',$e->getMessage()], 500);
+        }
     
-        // dump($user);
-        // Log::info('User data:', $user->toArray());
-        // dd($request->all());
+        dump($user);
+        Log::info('User data:', $user->toArray());
+        dd($request->all());
     
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
     }
@@ -44,7 +55,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
     
-        $data = $request->only(['full_name', 'email', 'phone','picture']);
+        $data = $request->only(['full_name', 'email', 'phone','image']);
     
         $user->update($data);
     

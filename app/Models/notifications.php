@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class notifications extends Model
 {
-    protected $table = 'notifications';
+    protected $table = 'notification_messages';
     protected $fillable = [
         'type',
+        'sender_user_id',
         'order_id',
         'body',
         'title',

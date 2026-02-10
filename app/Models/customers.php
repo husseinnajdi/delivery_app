@@ -8,18 +8,15 @@ class customers extends Model
 {
     protected $table = 'customers';
     protected $fillable = [
+        'id',
+        'shop_id',
         'name',
         'email',
         'phone',
-        'address',
-        'city',
-        'street',
-        'building',
-        'apartment',
-        'floor',
-        'location_url',
         'notes',
+        'address_id',
         'status',
         'created_by',
+
     ];
 }
