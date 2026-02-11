@@ -35,7 +35,7 @@ class NotificationService
                 'sender_user_id'=>$sender_user_id,
                 'body' => $body,
                 'order_id' => $orderId,
-                'type' => 'general',
+                'type' => 'info',
             ]);
 
             notification_users::insert(
