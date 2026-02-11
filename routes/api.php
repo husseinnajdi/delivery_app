@@ -41,7 +41,7 @@ Route::middleware('jwt.auth')->group(function () {
 // Authentication API routes
 Route::post('/login', [AuthController::class, 'login']);//done
 Route::post('/logout', [AuthController::class, 'logout']);
-//Route::post('/user', [UserController::class, 'store']);
+Route::post('/user', [UserController::class, 'store']);
 Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);
 // Payment API routes
 Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);
