@@ -28,8 +28,8 @@ class OrderResource extends JsonResource
                 'phone' => $this->pickup_phone,
             ],
             'deliveryLocation' => [
-                'address' => $this->customer_address,
-                'link' => $this->location_link,
+                'address' => $this->delivery_city,
+                'link' => $this->pickup_location_url,
             ],
             'package' => [
                 'description' => $this->package_description,

@@ -22,7 +22,7 @@ class account_balances extends Controller
         //     'amount_type' => gettype($amount)
         // ]);
         $balance = \DB::table('account_balances')
-        ->where('user_id', '=', (int)$user_id)
+        ->where('user_id',  $user_id)
         ->first();
     
     if(!$balance){

@@ -27,9 +27,9 @@ class OrderController extends Controller
 
         $orderData['customer']['customer_name'] = $user->username ?? 'Unknown Customer';
         $orderData['customer']['phone'] = $user->phone ?? 'Unknown Phone';
-        $orderData['status'] = $status->name ?? 'Unknown Status';
-        $orderData['deliveryLocation']['address'] = $address->city ?? 'Unknown Phone';
-        $orderData['deliveryLocation']['link'] = $address->location_url ?? 'Unknown Link';
+        $orderData['status'] = $status->label ?? 'Unknown Status';
+        $orderData['deliveryLocation']['address'] = $order->delivery_city ?? 'Unknown Phone';
+        $orderData['deliveryLocation']['link'] = $order->pickup_location_url ?? 'Unknown Link';
         return $orderData;
     }
 
@@ -92,7 +92,7 @@ class OrderController extends Controller
     public function showallbydriver(Request $request)
     {
         $driverid = $request->auth_user->id;
-        $orders = orders::where('delivered_by', $driverid)->get();
+        $orders = orders::where('delivery_driver_id', $driverid)->get();
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
@@ -100,18 +100,18 @@ class OrderController extends Controller
 
     public function showdriverarchive(Request $request)
     {
-        $status = [6, 8, 10, 13];
+        $status = [8,10,11,12,13];
         $driverid = $request->auth_user->id;
-        $orders = orders::where('delivered_by', $driverid)->whereIn('status_id', $status)->paginate(10);
+        $orders = orders::where('delivery_driver_id', $driverid)->whereIn('status_id', $status)->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
     public function showbydriver(Request $request)
     {
-        $status = [3, 4, 5, 12];
+        $status = [3,5,6,7,12];
         $driverid = $request->auth_user->id;
 
-        $orders = orders::where('delivered_by', $driverid)
+        $orders = orders::where('delivery_driver_id', $driverid)
             ->whereIn('status_id', $status)
             ->get();
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
@@ -130,12 +130,26 @@ class OrderController extends Controller
 
     public function updatestatus(Request $request)
     {
-        $order = orders::find($request->order_id);
+        $order = orders::where('order_number',$request->order_number);
         if (!$order)
             return response()->json(['message' => 'Order not found', $order], 404);
-        $order->status_id = $request->status;
+        switch($request->status){
+            case 'On the way':
+                $status=7;
+                break;
+            case 'Delivered':
+                $status=8;
+                break;
+            case 'Canceled':
+                $status=9;
+                break;
+            case 'Delivered with exchange':
+                $status=10;
+                break;  
+        }
+        $order->status_id = $status;
         $order->save();
-        if ($request->status == 6) {
+        if ($status == 8) {
                 $accountbalance = new account_balances();
                 // dd([
                 //     'userId' => $request->auth_user->id,
