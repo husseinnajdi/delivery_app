@@ -40,9 +40,10 @@ class NotificationService
 
             notification_users::insert(
                 collect($userIds)->map(fn ($id) => [
-                    'notification_id' => $notification->id,
-                    'user_id' => $id,
+                    'notification_message_id' => $notification->id,
+                    'recipient_user_id' => $id,
                     'is_read' => false,
+                    'read_at' => null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])->toArray()

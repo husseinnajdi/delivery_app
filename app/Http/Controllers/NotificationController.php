@@ -53,6 +53,7 @@ class NotificationController extends Controller
 
         if ($notificationUser) {
             $notificationUser->is_read = true;
+            $notificationUser->read_at = now();
             $notificationUser->save();
 
             return response()->json(['message' => 'Notification marked as read'], 200);
