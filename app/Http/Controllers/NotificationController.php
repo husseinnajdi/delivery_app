@@ -62,18 +62,20 @@ class NotificationController extends Controller
         }
     }
     public function sendnotification(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required',
-            'sender_user_id'=>'required|integer',
-            'order_id'=>'nullable|integer',
-            'title' => 'required|string',
-            'message' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'user_id' => 'required',
+        'sender_user_id' => 'required|integer',
+        'order_id' => 'nullable|integer',
+        'title' => 'required|string',
+        'message' => 'required|string',
+    ]);
 
-        $userIds = is_array($request->user_id)
-            ? $request->user_id
-            : [$request->user_id];
+    $userIds = is_array($request->user_id)
+        ? $request->user_id
+        : [$request->user_id];
+
+    try {
 
         $this->service->send(
             $userIds,
@@ -83,8 +85,20 @@ class NotificationController extends Controller
             $request->sender_user_id
         );
 
-        return response()->json(['message' => 'Notification sent']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification sent'
+        ], 200);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 400);
     }
+}
+
     public function notifyAll(string $title, string $body, $orderId = null)
     {
         $userIds = User::pluck('id')->toArray();
