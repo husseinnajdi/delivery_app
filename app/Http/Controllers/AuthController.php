@@ -9,8 +9,16 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
+use App\Models\activity_log;
+use App\Services\ActivityLog;
 class AuthController extends Controller
 {
+    protected $activityLog;
+
+    public function __construct(ActivityLog $activityLog)
+    {
+        $this->activityLog = $activityLog;
+    }
     public function login(Request $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
@@ -28,6 +36,8 @@ class AuthController extends Controller
 
         $token = JWT::encode($payload, config('jwt.key'), 'HS256');
         $user->update(['FCMtoken' => $request->FCM_token]);
+        $this->activityLog->log($user->id, 'login', 'User logged in', '1');
+        Log::info('User logged in', ['user_id' => $user->id, 'email' => $user->email]);
         return response()->json([
             'success' => true,
             'full_name' => $user->full_name,
@@ -57,12 +67,15 @@ class AuthController extends Controller
                 'exp' => time() + (10 * 365 * 24 * 60 * 60),
             ];
             $token = JWT::encode($payload, config('jwt.key'), 'HS256');
+            $user->update(['FCMtoken' => $request->FCM_token]);
+            $this->activityLog->log($user->id, 'login', 'User logged in with Google', '1');
+            Log::info('User logged in with Google', ['user_id' => $user->id, 'email' => $user->email]);
             return response()->json([
                 'success' => true,
                 'full_name' => $user->full_name,
             ])->header('Authorization', 'Bearer ' . $token);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid ID token','meesage'=>$e->getMessage()], 401);
+            return response()->json(['error' => 'Invalid ID token', 'meesage' => $e->getMessage()], 401);
         }
     }
 
@@ -70,6 +83,8 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
         User::update(['FCM_token' => null]);
+            $this->activityLog->log($request->user()->id, 'logout', 
+            'User logged out', '1');
         return response()->json(['message' => 'Successfully logged out']);
     }
 

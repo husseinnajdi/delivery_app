@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\account_balances as AccountBalance;
 use Illuminate\Support\Facades\Log;
+use App\Services\ActivityLog;
 class account_balances extends Controller
 {
+    public function __construct(private ActivityLog $activityLog)
+    {
+    }
     public function index()
     {
         $balances = AccountBalance::all();
@@ -35,6 +39,7 @@ class account_balances extends Controller
         ->update([
             'total_balance' => $balance->total_balance + $amount
         ]);
+        $this->activityLog->log($user_id, 'balance update', "User balance updated by $amount", '1');
         return $balance;
     }
     public function update(Request $request, $user_id)

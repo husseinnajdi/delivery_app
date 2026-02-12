@@ -12,10 +12,10 @@ use Log;
 use App\Http\Controllers\account_balances;
 use App\Models\Addresse;
 use App\Http\Controllers\Order_Payment;
-
+use App\Services\ActivityLog;
 class OrderController extends Controller
 {
-    public function __construct(private NotificationService $service)
+    public function __construct(private NotificationService $service, private ActivityLog $activityLog)
     {
     }
     private function formatOrder(orders $order)
@@ -154,6 +154,9 @@ class OrderController extends Controller
         $order->actual_delivery = now();
         $order->status_id = $status;
         $order->save();
+        $this->activityLog->log($request->auth_user->id, 
+        'update_status', 'Status of order with number: '. $request->order_number .' updated to ' . $request->status, 
+        '1');   
         if ($status == 8 || $status == 10) {
             $accountbalance = new account_balances();
             $orderpayment=new Order_Payment();
