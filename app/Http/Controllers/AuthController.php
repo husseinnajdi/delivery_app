@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Firebase\JWT\JWT;
+use Illuminate\Console\View\Components\Secret;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-
+use Kreait\Firebase\Factory;
+use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     public function login(Request $request)
@@ -23,12 +25,45 @@ class AuthController extends Controller
             'exp' => time() + (10 * 365 * 24 * 60 * 60),
         ];
 
+
         $token = JWT::encode($payload, config('jwt.key'), 'HS256');
         $user->update(['FCMtoken' => $request->FCM_token]);
         return response()->json([
             'success' => true,
-            'full_name'=>$user->full_name,
+            'full_name' => $user->full_name,
         ])->header('Authorization', 'Bearer ' . $token);
+    }
+    public function loginwithgoogle(Request $request)
+    {
+        $credentials = json_decode(env('FIREBASE_CREDENTIALS_JSON'), true);
+        $factory = (new Factory)->withServiceAccount($credentials);
+        //$factory = (new Factory)->withServiceAccount(base_path('secret_key.json'));
+
+        $auth = $factory->createAuth();
+        try {
+            $verifiedIdToken = $auth->verifyIdToken($request->id_token);
+            $uid = $verifiedIdToken->claims()->get('sub');
+            $userRecord = $auth->getUser($uid);
+            $email = $verifiedIdToken->claims()->get('email');
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+            //$user = Auth::user();
+            $payload = [
+                'id' => $user->id,
+                'role' => $user->role,
+                'iat' => time(),
+                'exp' => time() + (10 * 365 * 24 * 60 * 60),
+            ];
+            $token = JWT::encode($payload, config('jwt.key'), 'HS256');
+            return response()->json([
+                'success' => true,
+                'full_name' => $user->full_name,
+            ])->header('Authorization', 'Bearer ' . $token);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid ID token','meesage'=>$e->getMessage()], 401);
+        }
     }
 
     public function logout(Request $request)

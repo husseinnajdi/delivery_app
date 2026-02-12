@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\order_payment as orderpayment;
+use App\Models\orders;
 class Order_Payment extends Controller
 {
     public function show($id){
@@ -29,12 +30,16 @@ class Order_Payment extends Controller
     }
     public function store(Request $request){
         $payment=orderpayment::create([
-            'order_id'=>$request->order_id,
+            'order_number'=>$request->order_number,
             'amount'=>$request->amount,
-            'currency_id'=>$request->currency,
+            'currency_id'=>$request->currency_id,
             'amount_usd'=>$request->amount_usd  ,
-            'collected_at'=>$request->collected_at,
-            'collected_by'=>$request->collected_by,
+            'collected_at'=>now(),
+            'collected_by'=>$request->auth_user->id,
+        ]);
+        $order=orders::where('order_number',$request->order_number)->first();
+        $order->update([
+            'payment_status'=>'paid'
         ]);
         return response()->json(['message'=>'Payment created successfully','payment'=>$payment]);
     }

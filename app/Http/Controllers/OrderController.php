@@ -11,6 +11,7 @@ use App\Services\NotificationService;
 use Log;
 use App\Http\Controllers\account_balances;
 use App\Models\Addresse;
+use App\Http\Controllers\Order_Payment;
 
 class OrderController extends Controller
 {
@@ -113,7 +114,7 @@ class OrderController extends Controller
 
         $orders = orders::where('delivery_driver_id', $driverid)
             ->whereIn('status_id', $status)
-            ->get();
+            ->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
@@ -155,7 +156,15 @@ class OrderController extends Controller
         $order->save();
         if ($status == 8 || $status == 10) {
             $accountbalance = new account_balances();
+            $orderpayment=new Order_Payment();
             try {
+                $orderpayment->store(new Request([
+                    'order_number' => $order->order_number,
+                    'amount' => $order->amount_lbp,
+                    'currency_id' => 1,
+                    'amount_usd' => $order->amount_usd,
+                    'auth_user' => $request->auth_user
+                ]));
                 $accountbalance->statusupdatebalance($request->auth_user->id, $order->product_cost);
             } catch (\Exception $e) {
                 Log::error('Failed to update account balance: ' . $e->getMessage());

@@ -7,6 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Currencies;
 use App\Http\Controllers\Warehouses;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\order_payment;
 
 Route::middleware('jwt.auth')->group(function () {
 
@@ -27,6 +28,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/order/status', [OrderController::class, 'updatestatus']);//done
     //Route::delete('/order/{id}', [OrderController::class, 'destroy']);
 
+    Route::post('/order/payment', [Order_Payment::class, 'store']);//done
     // Notifications API routes
     //Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);//done
@@ -40,9 +42,10 @@ Route::middleware('jwt.auth')->group(function () {
 
 // Authentication API routes
 Route::post('/login', [AuthController::class, 'login']);//done
+Route::post('/loginwithgoogle', [AuthController::class, 'loginwithgoogle']);//done
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/user', [UserController::class, 'store']);
-Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);
+Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);//done
 // Payment API routes
 Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);
 

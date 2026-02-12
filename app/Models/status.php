@@ -10,6 +10,10 @@ class status extends Model
     protected $fillable = [
         'id',
         'name',
-        'description',
+        'lsbel',
+        'badge_class',
+        'color',
+        'sort_order',
+        'is_active',
     ];
 }
