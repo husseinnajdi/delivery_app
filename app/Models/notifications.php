@@ -11,7 +11,7 @@ class notifications extends Model
         'type',
         'sender_user_id',
         'order_id',
-        'body',
+        'message',
         'title',
         'created_at',
     ];
