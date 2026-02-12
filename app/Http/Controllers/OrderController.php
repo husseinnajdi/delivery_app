@@ -100,7 +100,7 @@ class OrderController extends Controller
 
     public function showdriverarchive(Request $request)
     {
-        $status = [8,10,11,12,13];
+        $status = [8, 10, 11, 12, 13];
         $driverid = $request->auth_user->id;
         $orders = orders::where('delivery_driver_id', $driverid)->whereIn('status_id', $status)->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
@@ -108,7 +108,7 @@ class OrderController extends Controller
     }
     public function showbydriver(Request $request)
     {
-        $status = [3,5,6,7,12];
+        $status = [3, 5, 6, 7, 12];
         $driverid = $request->auth_user->id;
 
         $orders = orders::where('delivery_driver_id', $driverid)
@@ -130,38 +130,37 @@ class OrderController extends Controller
 
     public function updatestatus(Request $request)
     {
-        $order = orders::where('order_number',$request->order_number);
+        $order = orders::where('order_number', $request->order_number)->first();
         if (!$order)
             return response()->json(['message' => 'Order not found', $order], 404);
-        switch($request->status){
+        switch ($request->status) {
             case 'On the way':
-                $status=7;
+                $status = 7;
                 break;
             case 'Delivered':
-                $status=8;
+                $status = 8;
                 break;
             case 'Canceled':
-                $status=9;
+                $status = 9;
                 break;
             case 'Delivered with exchange':
-                $status=10;
-                break;  
+                $status = 10;
+                break;
         }
+        if(today()->greaterThan($order->estimated_delivery)){
+            $status = 10; 
+        }
+        $order->actual_delivery = now();
         $order->status_id = $status;
         $order->save();
-        if ($status == 8) {
-                $accountbalance = new account_balances();
-                // dd([
-                //     'userId' => $request->auth_user->id,
-                //     'type' => gettype($request->auth_user->id),
-                //     'order_cost' => $order->product_cost,
-                //     'order_cost_type' => gettype($order->product_cost)
-                // ]);
-                try{$accountbalance->statusupdatebalance($request->auth_user->id, $order->product_cost);
-                }catch(\Exception $e){
-                    Log::error('Failed to update account balance: ' . $e->getMessage());
-                    return response()->json(['message' => 'Failed to update account balance'], 500);
-                }
+        if ($status == 8 || $status == 10) {
+            $accountbalance = new account_balances();
+            try {
+                $accountbalance->statusupdatebalance($request->auth_user->id, $order->product_cost);
+            } catch (\Exception $e) {
+                Log::error('Failed to update account balance: ' . $e->getMessage());
+                return response()->json(['message' => 'Failed to update account balance'], 500);
+            }
         }
 
         return response()->json($this->formatOrder($order));

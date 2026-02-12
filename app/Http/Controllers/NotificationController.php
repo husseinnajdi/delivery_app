@@ -68,7 +68,7 @@ class NotificationController extends Controller
             'sender_user_id'=>'required|integer',
             'order_id'=>'nullable|integer',
             'title' => 'required|string',
-            'body' => 'required|string',
+            'message' => 'required|string',
         ]);
 
         $userIds = is_array($request->user_id)
@@ -78,7 +78,7 @@ class NotificationController extends Controller
         $this->service->send(
             $userIds,
             $request->title,
-            $request->body,
+            $request->message,
             $request->order_id,
             $request->sender_user_id
         );
