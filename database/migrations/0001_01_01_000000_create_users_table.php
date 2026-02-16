@@ -14,11 +14,13 @@ return new class extends Migration
             $table->string('username');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('role')->nullable();
-            $table->boolean('status')->default(true);
+            $table->integer('role_id')->nullable();
+            $table->integer('role_subtype_id')->nullable();
+            $table->string('status')->default('active');
             $table->string('full_name')->nullable();
             $table->integer('phone')->nullable();
-            $table->string('picture')->nullable();
+            $table->string('image')->nullable();
+            $table->decimal('profit_balance', 10, 2)->default(0);
             $table->string('FCMtoken')->nullable();
             $table->rememberToken();
             $table->timestamps();

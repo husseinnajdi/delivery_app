@@ -39,7 +39,8 @@ class Order_Payment extends Controller
         ]);
         $order=orders::where('order_number',$request->order_number)->first();
         $order->update([
-            'payment_status'=>'paid'
+            'payment_status'=>'paid',
+            'status_id'=>8
         ]);
         return response()->json(['message'=>'Payment created successfully','payment'=>$payment]);
     }

@@ -7,7 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Currencies;
 use App\Http\Controllers\Warehouses;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\order_payment;
+use App\Http\Controllers\Order_Payment;
 
 Route::middleware('jwt.auth')->group(function () {
 
@@ -22,17 +22,12 @@ Route::middleware('jwt.auth')->group(function () {
     //Route::get('/order/status/{status}', [OrderController::class, 'showbystatus']);
     Route::get('/order/driverarchive', [OrderController::class, 'showdriverarchive']);//done
     Route::get('/order', [OrderController::class, 'show']);//done
-    //Route::get('/order', [OrderController::class, 'index']);
-    //Route::post('/order', [OrderController::class, 'store']);
     Route::put('/order/assign', [OrderController::class, 'assigndriver']);//done
     Route::put('/order/status', [OrderController::class, 'updatestatus']);//done
-    //Route::delete('/order/{id}', [OrderController::class, 'destroy']);
 
     Route::post('/order/payment', [Order_Payment::class, 'store']);//done
     // Notifications API routes
-    //Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);//done
-    //Route::post('/notifyalluser', [NotificationController::class, 'notifyalluser']);
     Route::put('/notifications/markasread', [NotificationController::class, 'markasread']);//done
 
     // Payment Transactions API routes

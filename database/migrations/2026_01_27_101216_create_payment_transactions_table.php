@@ -6,28 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('payment_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            $table->string('payment_method');
-            $table->double('amount');
-            $table->string('currency');
-            $table->string('status');
-            $table->string('payment_details')->nullable();
-            $table->timestamps();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('currency_id');
+            $table->decimal('amount', 15, 2);
+            $table->enum('transaction_type', ['credit', 'debit', 'payment', 'adjustment']);
+            $table->string('reference_type', 50)->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->string('description', 255)->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->timestamp('created_at')->useCurrent();
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('currency_id')->references('id')->on('currencies')->cascadeOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('payment_transactions');
+        Schema::dropIfExists('account_transactions');
     }
 };

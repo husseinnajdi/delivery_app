@@ -6,44 +6,59 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number')->unique();
-            $table->foreignId('shop_id')->constrained('shops')->cascadeOnDelete();
-            $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
-            $table->string('pickup_address');
-            $table->string('pickup_phone');
-            $table->string('customer_address');
-            $table->string('customer_phone');
-            $table->string('package_description');
-            $table->double('package_weight');
-            $table->double('order_cost');
-            $table->timestamp('estimated_delivery')->nullable();
-            $table->string('location_link')->nullable();
-            $table->string('special_instructions')->nullable();
-            $table->string('actual_delivery')->nullable();
-            $table->string('priority');
-            $table->foreignId('status_id')->constrained('status')->cascadeOnDelete();
-            $table->string('payment_status')->default('unpaid');
-            $table->double('delivery_fee');
-            $table->foreignId('pickup_by')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->foreignId('delivered_by')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('confirmed_by')->nullable()->constrained('users')->cascadeOnDelete();
-        
+            $table->string('order_number', 20)->index();
+            $table->unsignedBigInteger('shop_id')->index();
+            $table->unsignedBigInteger('customer_id')->index();
+
+            $table->text('pickup_address');
+            $table->string('pickup_city', 50)->nullable();
+            $table->string('pickup_phone', 20)->nullable();
+            $table->string('pickup_location_url', 500);
+            $table->text('delivery_address');
+            $table->string('delivery_city', 50)->nullable();
+            $table->string('delivery_street', 255);
+            $table->string('delivery_building', 100)->nullable();
+            $table->string('delivery_apartment', 50);
+            $table->string('delivery_floor', 20);
+            $table->string('delivery_location_url', 500)->nullable();
+            $table->text('package_description')->nullable();
+            $table->decimal('package_weight', 10, 2)->nullable();
+            $table->string('package_dimensions', 50)->nullable();
+            $table->decimal('product_cost', 10, 2)->default(0.00);
+            $table->unsignedBigInteger('transportation_type_id')->nullable()->index();
+            $table->unsignedBigInteger('zone_id')->nullable()->index();
+            $table->text('special_instructions')->nullable();
+            $table->date('estimated_delivery')->nullable();
+            $table->dateTime('actual_delivery')->nullable();
+            $table->enum('priority', ['low', 'normal', 'high', 'urgent'])->default('normal');
+            $table->unsignedBigInteger('status_id')->default(1)->index();
+            $table->enum('payment_status', ['pending', 'paid'])->default('pending');
+            $table->enum('payment_method', ['cash'])->default('cash');
+            $table->decimal('delivery_fee', 10, 2)->default(0.00);
+            $table->unsignedBigInteger('assigned_to')->nullable()->index();
+            $table->unsignedBigInteger('pickup_driver_id')->nullable()->index();
+            $table->unsignedBigInteger('delivery_driver_id')->nullable()->index();
+            $table->unsignedBigInteger('warehouse_id')->nullable()->index();
+            $table->timestamp('picked_up_at')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('confirmed_by')->nullable()->index();
+            $table->dateTime('confirmed_at')->nullable();
             $table->timestamps();
+            $table->foreign('shop_id')->references('id')->on('shops')->cascadeOnDelete();
+            $table->foreign('customer_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('status_id')->references('id')->on('statuses')->cascadeOnDelete();
+            $table->foreign('assigned_to')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('pickup_driver_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('delivery_driver_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('confirmed_by')->references('id')->on('users')->nullOnDelete();
         });
-        
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('orders');
