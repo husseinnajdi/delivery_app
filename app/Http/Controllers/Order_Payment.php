@@ -40,6 +40,12 @@ class Order_Payment extends Controller
     }
     public function store(Request $request)
     {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'amount' => 'required|numeric',
+            'currency' => 'required|string',
+            'status' => 'required|string',
+        ]);
         $payment = $this->paymentService->createPayment($request);
         return response()->json(['message' => 'Payment created successfully', 'data' => $payment]);
     }
