@@ -46,25 +46,25 @@ class UserController extends Controller
             Log::error('Error creating user: ' . $e->getMessage());
             return response()->json(['message' => 'Failed to create user', $e->getMessage()], 500);
         }
-
         dump($user);
         Log::info('User data:', $user->toArray());
         dd($request->all());
-
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
     }
-
     public function update(Request $request)
     {
         $user = User::find($request->auth_user->id);
-
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
-        $data = $request->only(['full_name', 'email', 'phone', 'image']);
-
-        $user->update($data);
+        $data = $request->only(['full_name', 'email', 'phone']);
+        $image_data=base64_decode($request->picture);
+        $user->update([
+            'full_name' => $data['full_name'] ?? $user->full_name,
+            'email' => $data['email'] ?? $user->email,
+            'phone' => $data['phone'] ?? $user->phone,
+            'image'=>$image_data??$user->picture
+        ]);
         
         $this->activityLog->log($user->id, 'update user', 'User updated his profile', '1');   
         return response()->json(['message' => 'User updated successfully']);

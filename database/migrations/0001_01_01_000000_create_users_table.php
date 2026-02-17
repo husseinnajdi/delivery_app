@@ -19,14 +19,12 @@ return new class extends Migration
             $table->string('status')->default('active');
             $table->string('full_name')->nullable();
             $table->integer('phone')->nullable();
-            $table->string('image')->nullable();
+            $table->addColumn('longblob','image')->nullable();
             $table->decimal('profit_balance', 10, 2)->default(0);
             $table->string('FCMtoken')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
-
-        
     }
 
     /**
@@ -37,3 +35,4 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
+

@@ -15,7 +15,7 @@ class UserResources extends JsonResource
             'phone' => $this->phone,
             'role' => $this->role,
             'status' => $this->status,
-            'picture' => $this->picture,
+            'picture' => $this->image ? base64_encode($this->image) : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             

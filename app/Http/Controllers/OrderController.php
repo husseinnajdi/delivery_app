@@ -13,9 +13,10 @@ use App\Http\Controllers\account_balances;
 use App\Models\Addresse;
 use App\Http\Controllers\Order_Payment;
 use App\Services\ActivityLog;
+use App\Services\PaymentService;
 class OrderController extends Controller
 {
-    public function __construct(private NotificationService $service, private ActivityLog $activityLog)
+    public function __construct(private account_balances $account_balances,private NotificationService $service, private ActivityLog $activityLog, private PaymentService $paymentService)
     {
     }
     private function formatOrder(orders $order)
@@ -118,17 +119,6 @@ class OrderController extends Controller
         $ordersArray = $orders->map(fn($order) => $this->formatOrder($order));
         return response()->json($ordersArray);
     }
-
-    // public function update(Request $request, $id)
-    // {
-    //     $order = orders::find($id);
-    //     if (!$order)
-    //         return response()->json(['message' => 'Order not found'], 404);
-
-    //     $order->update($request->all());
-    //     return response()->json($this->formatOrder($order));
-    // }
-
     public function updatestatus(Request $request)
     {
         $order = orders::where('order_number', $request->order_number)->first();
@@ -158,17 +148,15 @@ class OrderController extends Controller
         'update_status', 'Status of order with number: '. $request->order_number .' updated to ' . $request->status, 
         '1');   
         if ($status == 8 || $status == 10) {
-            $accountbalance = new account_balances();
-            $orderpayment=new Order_Payment();
             try {
-                $orderpayment->store(new Request([
+                $this->paymentService->createpayment(new Request([
                     'order_number' => $order->order_number,
                     'amount' => $order->amount_lbp,
                     'currency_id' => 1,
                     'amount_usd' => $order->amount_usd,
                     'auth_user' => $request->auth_user
                 ]));
-                $accountbalance->statusupdatebalance($request->auth_user->id, $order->product_cost);
+                $this->account_balances->statusupdatebalance($request->auth_user->id, $order->product_cost);
             } catch (\Exception $e) {
                 Log::error('Failed to update account balance: ' . $e->getMessage());
                 return response()->json(['message' => 'Failed to update account balance'], 500);
