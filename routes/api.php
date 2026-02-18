@@ -19,7 +19,6 @@ Route::middleware('jwt.auth')->group(function () {
     // Orders API routes
     Route::get('/order/driver', [OrderController::class, 'showbydriver']);//done
     Route::get('/order/allbydriver', [OrderController::class, 'showallbydriver']);//done
-    //Route::get('/order/status/{status}', [OrderController::class, 'showbystatus']);
     Route::get('/order/driverarchive', [OrderController::class, 'showdriverarchive']);//done
     Route::get('/order', [OrderController::class, 'show']);//done
     Route::put('/order/assign', [OrderController::class, 'assigndriver']);//done
@@ -37,6 +36,7 @@ Route::middleware('jwt.auth')->group(function () {
 
 // Authentication API routes
 Route::post('/login', [AuthController::class, 'login']);//done
+Route::post('/forgetpassword', [AuthController::class, 'forgotPassword']);//done
 Route::post('/loginwithgoogle', [AuthController::class, 'loginwithgoogle']);//done
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/user', [UserController::class, 'store']);

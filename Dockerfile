@@ -1,40 +1,29 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Enable Apache rewrite
-RUN a2enmod rewrite
-
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
+    git \
+    curl \
     zip \
     unzip \
-    git
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
-# Set working directory
-WORKDIR /var/www/html
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy project files
+WORKDIR /var/www
+
 COPY . .
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader
 
-# Fix Laravel permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 /var/www/storage \
+    && chmod -R 775 /var/www/bootstrap/cache
 
-# Apache config
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+EXPOSE 8000
 
-# 🔥 IMPORTANT: Listen on Render PORT
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf \
- && sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-available/000-default.conf
+CMD php artisan serve --host=0.0.0.0 --port=$PORT
 
-EXPOSE ${PORT}
-
-CMD ["apache2-foreground"]

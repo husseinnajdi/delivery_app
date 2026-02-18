@@ -7,6 +7,7 @@ use Illuminate\Console\View\Components\Secret;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
 use App\Models\activity_log;
@@ -46,8 +47,8 @@ class AuthController extends Controller
     public function loginwithgoogle(Request $request)
     {
         $credentials = json_decode(env('FIREBASE_CREDENTIALS_JSON'), true);
-        $factory = (new Factory)->withServiceAccount($credentials);
-        //$factory = (new Factory)->withServiceAccount(base_path('secret_key.json'));
+        //$factory = (new Factory)->withServiceAccount($credentials);
+        $factory = (new Factory)->withServiceAccount(base_path('secret_key.json'));
 
         $auth = $factory->createAuth();
         try {
@@ -83,11 +84,38 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
         User::update(['FCM_token' => null]);
-            $this->activityLog->log($request->user()->id, 'logout', 
-            'User logged out', '1');
+        $this->activityLog->log(
+            $request->user()->id,
+            'logout',
+            'User logged out',
+            '1'
+        );
         return response()->json(['message' => 'Successfully logged out']);
     }
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
 
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => 'Password reset link sent to your email.'
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Unable to send reset link.'
+            ], 500);
+        }
+        return response()->json(['message' => 'Password reset link sent to your email']);
+    }
     public function refreshtoken(Request $request)
     {
         $user = $request->user();
