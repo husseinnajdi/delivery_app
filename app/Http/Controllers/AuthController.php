@@ -103,13 +103,37 @@ class AuthController extends Controller
     }
 
     $otp = rand(1000, 9999);
-    $user->update(['otp' => $otp]);
-    $subject = 'OTP for Password Reset';
+    $user->otp= $otp;
+    $user->save();
 
     Mail::to($user->email)->send(new OTPMail($otp) );
 
     return response()->json(['message' => 'OTP sent to your email'], 200);
 }
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'otp' => 'required',
+        'password' => 'required|min:6'
+    ]);
+
+    $user = User::where('email', $request->email)
+                ->where('otp', $request->otp)
+                ->first();
+
+    if (!$user) {
+        return back()->with('error', 'Invalid OTP');
+    }
+
+    $user->update([
+        'password' => bcrypt($request->password),
+        'otp' => null
+    ]);
+
+    return back()->with('success', 'Password reset successfully');
+}
+
 
 
     public function refreshtoken(Request $request)

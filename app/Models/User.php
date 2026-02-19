@@ -33,6 +33,7 @@ class User extends Authenticatable
         'role_subtype_id',
         'role_id',
         'profit_balance',
+        'otp',
         'FCMtoken',
         'picture',
     ];
