@@ -95,9 +95,13 @@ class OrderController extends Controller
         $status = [3, 5, 6, 7, 12];
         $driverid = $request->auth_user->id;
 
-        $orders = orders::where('delivery_driver_id', $driverid)
+        $orders = Orders::where(function($query) use ($driverid) {
+                $query->where('delivery_driver_id', $driverid)
+                      ->orWhere('pickup_driver_id', $driverid);
+            })
             ->whereIn('status_id', $status)
             ->paginate(10);
+
         $ordersArray = $orders->map(fn($order) => $this->orderservice->formatOrder($order));
         return response()->json($ordersArray);
     }
