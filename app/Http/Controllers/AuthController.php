@@ -123,16 +123,15 @@ public function resetPassword(Request $request)
                 ->first();
 
     if (!$user) {
-        return back()->with('error', 'Invalid OTP');
+        return response()->json(['error' => 'Invalid OTP'], 400); // ✅ changed
     }
+
     $user->password = bcrypt($request->password);
-    $user->otp= null;
+    $user->otp = null;
     $user->save();
 
-    return back()->with('success', 'Password reset successfully');
+    return response()->json(['message' => 'Password reset successfully'], 200); // ✅ changed
 }
-
-
 
     public function refreshtoken(Request $request)
     {
