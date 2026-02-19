@@ -1,3 +1,49 @@
+<?php
+$alertMessage = '';
+$alertType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email    = trim($_POST['email'] ?? '');
+    $otp      = trim($_POST['otp'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if (empty($email) || empty($otp) || empty($password)) {
+        $alertMessage = 'All fields are required.';
+        $alertType    = 'error';
+    } else {
+        $response = file_get_contents('https://delivery-app-ebex.onrender.com/api/reset-password', false, stream_context_create([
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/json\r\n",
+                'content' => json_encode([
+                    'email'    => $email,
+                    'otp'      => $otp,
+                    'password' => $password,
+                ]),
+                'ignore_errors' => true,
+            ]
+        ]));
+
+        if ($response === false) {
+            $alertMessage = 'Failed to connect to the server. Please try again.';
+            $alertType    = 'error';
+        } else {
+            $data = json_decode($response, true);
+
+            if (!empty($data['message'])) {
+                $alertMessage = $data['message'];
+                $alertType    = 'success';
+            } elseif (!empty($data['error'])) {
+                $alertMessage = $data['error'];
+                $alertType    = 'error';
+            } else {
+                $alertMessage = 'Unexpected response from server.';
+                $alertType    = 'error';
+            }
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +51,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reset Password</title>
 <style>
-    /* Basic Reset */
     * {
         margin: 0;
         padding: 0;
@@ -72,23 +117,12 @@
         transform: translateY(-2px);
     }
 
-    /* Responsive */
     @media (max-width: 480px) {
-        .card {
-            padding: 30px 20px;
-        }
-
-        .card h2 {
-            font-size: 1.5em;
-        }
-
-        input, button {
-            padding: 12px;
-            font-size: 0.95em;
-        }
+        .card { padding: 30px 20px; }
+        .card h2 { font-size: 1.5em; }
+        input, button { padding: 12px; font-size: 0.95em; }
     }
 
-    /* Success & Error alert styles */
     .alert {
         padding: 12px;
         margin-top: 15px;
@@ -103,55 +137,26 @@
         background-color: #f8d7da;
         color: #721c24;
     }
-
 </style>
 </head>
 <body>
 
 <div class="card">
     <h2>Reset Password</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="text" id="otp" placeholder="OTP Code">
-    <input type="password" id="password" placeholder="New Password">
-    <button onclick="resetPassword()">Reset Password</button>
 
-    <div id="alert" class="alert" style="display:none;"></div>
+    <form method="POST" action="">
+        <input type="email"    name="email"    placeholder="Email"        value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+        <input type="text"     name="otp"      placeholder="OTP Code"     value="<?= htmlspecialchars($_POST['otp']   ?? '') ?>">
+        <input type="password" name="password" placeholder="New Password">
+        <button type="submit">Reset Password</button>
+    </form>
+
+    <?php if ($alertMessage): ?>
+        <div class="alert alert-<?= $alertType ?>">
+            <?= htmlspecialchars($alertMessage) ?>
+        </div>
+    <?php endif; ?>
 </div>
-
-<script>
-function resetPassword() {
-    const alertBox = document.getElementById('alert');
-    alertBox.style.display = 'none';
-
-    fetch("https://delivery-app-ebex.onrender.com/api/reset-password", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            email: document.getElementById("email").value,
-            otp: document.getElementById("otp").value,
-            password: document.getElementById("password").value
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alertBox.style.display = 'block';
-        if (data.message) {
-            alertBox.className = 'alert alert-success';
-            alertBox.innerText = data.message;
-        } else if (data.error) {
-            alertBox.className = 'alert alert-error';
-            alertBox.innerText = data.error;
-        }
-    })
-    .catch(err => {
-        alertBox.style.display = 'block';
-        alertBox.className = 'alert alert-error';
-        alertBox.innerText = 'Something went wrong. Please try again.';
-    });
-}
-</script>
 
 </body>
 </html>

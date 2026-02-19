@@ -125,11 +125,9 @@ public function resetPassword(Request $request)
     if (!$user) {
         return back()->with('error', 'Invalid OTP');
     }
-
-    $user->update([
-        'password' => bcrypt($request->password),
-        'otp' => null
-    ]);
+    $user->password = bcrypt($request->password);
+    $user->otp= null;
+    $user->save();
 
     return back()->with('success', 'Password reset successfully');
 }

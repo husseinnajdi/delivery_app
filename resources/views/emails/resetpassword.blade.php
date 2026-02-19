@@ -8,7 +8,7 @@ Your OTP Code is:
 
 # {{ $otp }}
 
-@component('mail::button', ['url' => url('https://delivery-app-ebex.onrender.com/api/reset-password')])
+@component('mail::button', ['url' => url('/api/reset-password')])
 Reset Password
 @endcomponent
 

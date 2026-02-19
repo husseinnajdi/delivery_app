@@ -33,15 +33,15 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/payment_transaction', [Payment_Transaction::class, 'update']);
 
 });
+// Authentication API routes
+Route::post('/login', [AuthController::class, 'login']);//done
+Route::post('/forgetpassword', [AuthController::class, 'forgetPassword']);//done
+Route::post('/loginwithgoogle', [AuthController::class, 'loginwithgoogle']);//done
 Route::Post('/forgetpassword',[AuthController::class,'forgetPassword']);//done
 Route::get('/reset-password', function () {
     return view('reset-password');
 });
 Route::post('reset-password',[AuthController::class,'resetPassword']);
-// Authentication API routes
-Route::post('/login', [AuthController::class, 'login']);//done
-Route::post('/forgetpassword', [AuthController::class, 'forgetPassword']);//done
-Route::post('/loginwithgoogle', [AuthController::class, 'loginwithgoogle']);//done
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/user', [UserController::class, 'store']);
 Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);//done
