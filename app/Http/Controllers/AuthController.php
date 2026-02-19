@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use Firebase\JWT\JWT;
-use Illuminate\Console\View\Components\Secret;
 use Illuminate\Http\Request;
+use App\Mail\OTPMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Password;
 use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
-use App\Models\activity_log;
+use Illuminate\Support\Facades\Mail;
 use App\Services\ActivityLog;
 class AuthController extends Controller
 {
@@ -83,7 +82,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        User::update(['FCM_token' => null]);
+        User::where('id', $request->user()->id)->update(['FCMtoken' => null]);
         $this->activityLog->log(
             $request->user()->id,
             'logout',
@@ -92,30 +91,27 @@ class AuthController extends Controller
         );
         return response()->json(['message' => 'Successfully logged out']);
     }
-    public function forgotPassword(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
+    public function forgetPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json([
-                'message' => 'Password reset link sent to your email.'
-            ]);
-        } else {
-            return response()->json([
-                'message' => 'Unable to send reset link.'
-            ], 500);
-        }
-        return response()->json(['message' => 'Password reset link sent to your email']);
+    $user = User::where('email', $request->email)->first();
+    if (!$user) {
+        return response()->json(['error' => 'Email not found'], 404);
     }
+
+    $otp = rand(1000, 9999);
+    $user->update(['otp' => $otp]);
+    $subject = 'OTP for Password Reset';
+
+    Mail::to($user->email)->send(new OTPMail($otp) );
+
+    return response()->json(['message' => 'OTP sent to your email'], 200);
+}
+
+
     public function refreshtoken(Request $request)
     {
         $user = $request->user();
