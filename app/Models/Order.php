@@ -29,6 +29,7 @@ class Order extends Model
         'assigned_to',
         'created_by',
         'confirmed_by',
+        'type'
     ];
 
     protected $casts = [

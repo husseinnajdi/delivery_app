@@ -11,33 +11,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $alertMessage = 'All fields are required.';
         $alertType    = 'error';
     } else {
-        $response = file_get_contents('https://delivery-app-ebex.onrender.com/api/reset-password', false, stream_context_create([
-            'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-Type: application/json\r\n",
-                'content' => json_encode([
-                    'email'    => $email,
-                    'otp'      => $otp,
-                    'password' => $password,
-                ]),
-                'ignore_errors' => true,
-            ]
-        ]));
+        $url = 'http://127.0.0.1:8000/api/reset-password';
+        
+        $payload = json_encode([
+            'email'    => $email,
+            'otp'      => $otp,
+            'password' => $password,
+        ]);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // optional timeout
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
 
         if ($response === false) {
-            $alertMessage = 'Failed to connect to the server. Please try again.';
+            $alertMessage = 'cURL Error: ' . $curlError;
             $alertType    = 'error';
         } else {
             $data = json_decode($response, true);
 
-            if (!empty($data['message'])) {
-                $alertMessage = $data['message'];
-                $alertType    = 'success';
-            } elseif (!empty($data['error'])) {
-                $alertMessage = $data['error'];
-                $alertType    = 'error';
+            if ($httpCode >= 200 && $httpCode < 300) {
+                if (!empty($data['message'])) {
+                    $alertMessage = $data['message'];
+                    $alertType    = 'success';
+                } else {
+                    $alertMessage = 'Password reset successfully.';
+                    $alertType    = 'success';
+                }
             } else {
-                $alertMessage = 'Unexpected response from server.';
+                $alertMessage = $data['error'] ?? 'Unexpected response from server.';
                 $alertType    = 'error';
             }
         }

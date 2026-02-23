@@ -101,7 +101,6 @@ class OrderController extends Controller
             })
             ->whereIn('status_id', $status)
             ->paginate(10);
-
         $ordersArray = $orders->map(fn($order) => $this->orderservice->formatOrder($order));
         return response()->json($ordersArray);
     }

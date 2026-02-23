@@ -12,6 +12,7 @@ class OrderResource extends JsonResource
             'orderId' => $this->id,
             'orderNumber' => $this->order_number,
             'status' => $this->status,
+            'type'=>$this->type,
             'priority' => $this->priority,
             'paymentStatus' => $this->payment_status,
             'createdAt' => $this->created_at,  
@@ -25,6 +26,8 @@ class OrderResource extends JsonResource
             ],
             'pickup' => [
                 'address' => $this->pickup_address,
+                'pickup_location_url'=> $this->pickup_location_url,
+                'shop_name'=> $this->shop_name,
                 'phone' => $this->pickup_phone,
             ],
             'deliveryLocation' => [

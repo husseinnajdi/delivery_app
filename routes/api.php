@@ -41,7 +41,7 @@ Route::Post('/forgetpassword',[AuthController::class,'forgetPassword']);//done
 Route::get('/reset-password', function () {
     return view('reset-password');
 });
-Route::post('reset-password',[AuthController::class,'resetPassword']);
+Route::post('/reset-password',[AuthController::class,'resetPassword']);
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/user', [UserController::class, 'store']);
 Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);//done

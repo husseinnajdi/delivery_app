@@ -11,6 +11,7 @@ use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Services\ActivityLog;
+use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     protected $activityLog;
@@ -112,25 +113,27 @@ class AuthController extends Controller
 }
 public function resetPassword(Request $request)
 {
-    $request->validate([
-        'email' => 'required|email',
-        'otp' => 'required',
-        'password' => 'required|min:6'
-    ]);
 
-    $user = User::where('email', $request->email)
-                ->where('otp', $request->otp)
-                ->first();
+    // $request->validate([
+    //     'email' => 'required|email',
+    //     'otp' => 'required|string',
+    //     'password' => 'required|string|min:6',
+    // ]);
+
+    $user = User::where('email', $request->email)->first();
 
     if (!$user) {
-        return response()->json(['error' => 'Invalid OTP'], 400); // ✅ changed
+        return response()->json(['error' => 'User not found.'], 404);
+    }
+
+    if ((string)$user->otp !== (string)$request->otp) {
+        return response()->json(['error' => 'Invalid OTP.'], 400);
     }
 
     $user->password = bcrypt($request->password);
     $user->otp = null;
     $user->save();
-
-    return response()->json(['message' => 'Password reset successfully'], 200); // ✅ changed
+    return response()->json(['message' => 'Password successfully reset.']);
 }
 
     public function refreshtoken(Request $request)
