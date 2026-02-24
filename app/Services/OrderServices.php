@@ -91,7 +91,7 @@ public function orderstatus($order_status)
                 $query->where('delivery_driver_id', $driverid)
                       ->orWhere('pickup_driver_id', $driverid);
             })
-            ->whereIn('status_id', $status_id)
+            ->whereIn('status_id', $status_id)->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")
             ->paginate(10);
     }
 

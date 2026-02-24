@@ -42,9 +42,9 @@ class OrderController extends Controller
         if (!$order)
             return response()->json(['message' => 'Order not found', $order], 404);
         $status = $this->orderservice->orderstatus($request->status);
-        // if(today()->greaterThan($order->estimated_delivery) && $status<13){
-        //     $status = 10; 
-        // }
+        if($status==8 && $order->estimated_delivery<now()){
+            $status = 10; 
+        }
         $order->actual_delivery = now();
         $order->status_id = $status;
         $order->save();

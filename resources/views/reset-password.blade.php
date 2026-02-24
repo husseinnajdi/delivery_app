@@ -1,7 +1,7 @@
 <?php
 $alertMessage = '';
 $alertType = '';
-
+ 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $otp      = trim($_POST['otp'] ?? '');
@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="card">
     <h2>Reset Password</h2>
 
-    <form method="POST" action="">
+    <form method="POST" action="reset-password.php">
         <input type="email"    name="email"    placeholder="Email"        value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
         <input type="text"     name="otp"      placeholder="OTP Code"     value="<?= htmlspecialchars($_POST['otp']   ?? '') ?>">
         <input type="password" name="password" placeholder="New Password">
