@@ -12,7 +12,6 @@ use App\Http\Controllers\Order_Payment;
 Route::middleware('jwt.auth')->group(function () {
 
     // Users API routes
-    //Route::get('/users', [UserController::class, 'index']);
     Route::put('/user', [UserController::class, 'update']);//done
     Route::get('/me', [UserController::class, 'show']);//done
 
@@ -23,14 +22,14 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/order', [OrderController::class, 'show']);//done
     Route::put('/order/assign', [OrderController::class, 'assigndriver']);//done
     Route::put('/order/status', [OrderController::class, 'updatestatus']);//done
-
     Route::post('/order/payment', [Order_Payment::class, 'store']);//done
+    
     // Notifications API routes
     Route::get('/notifications/user', [NotificationController::class, 'showbyuser']);//done
     Route::put('/notifications/markasread', [NotificationController::class, 'markasread']);//done
 
     // Payment Transactions API routes
-    Route::put('/payment_transaction', [Payment_Transaction::class, 'update']);
+    Route::put('/payment_transaction', [Payment_Transaction::class, 'update']);//done
 
 });
 // Authentication API routes
@@ -40,16 +39,16 @@ Route::post('/loginwithgoogle', [AuthController::class, 'loginwithgoogle']);//do
 Route::Post('/forgetpassword',[AuthController::class,'forgetPassword']);//done
 Route::get('/reset-password', function () {
     return view('reset-password');
-});
-Route::post('/reset-password',[AuthController::class,'resetPassword']);
-Route::post('/logout', [AuthController::class, 'logout']);
-Route::post('/user', [UserController::class, 'store']);
+});//done
+Route::post('/reset-password',[AuthController::class,'resetPassword']);//done
+Route::post('/logout', [AuthController::class, 'logout']);//done
+Route::post('/user', [UserController::class, 'store']);//done
 Route::post('/sendnotification', [NotificationController::class, 'sendnotification']);//done
 // Payment API routes
-Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);
+Route::get('/payment_transaction/{id}', [Payment_Transaction::class, 'show']);//done
 
 // Currencies API routes
-Route::get('/currencies', [Currencies::class, 'index']);
+Route::get('/currencies', [Currencies::class, 'index']);//done
 
 // Warehouses API routes
-Route::get('/warehouses', [Warehouses::class, 'index']);
+Route::get('/warehouses', [Warehouses::class, 'index']);//done

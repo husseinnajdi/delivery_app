@@ -32,8 +32,6 @@ class account_balances extends Controller
     if(!$balance){
         return response()->json(['message'=>'Account balance not found'], 404);
     }
-    
-    // Update using DB query
     \DB::table('account_balances')
         ->where('user_id', '=', (int)$user_id)
         ->update([

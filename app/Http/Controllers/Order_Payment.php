@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\order_payment as orderpayment;
 use App\Services\PaymentService;
-use App\Models\orders;
 class Order_Payment extends Controller
 {
     private PaymentService $paymentService;
@@ -40,13 +39,7 @@ class Order_Payment extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'amount' => 'required|numeric',
-            'currency' => 'required|string',
-            'status' => 'required|string',
-        ]);
-        $payment = $this->paymentService->createPayment($request);
+        $payment = $this->paymentService->createpayment($request);
         return response()->json(['message' => 'Payment created successfully', 'data' => $payment]);
     }
 }

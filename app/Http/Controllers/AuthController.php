@@ -13,27 +13,28 @@ use Illuminate\Support\Facades\Mail;
 use App\Services\ActivityLog;
 use Illuminate\Support\Facades\Hash;
 use App\Services\AuthService;
+use App\Services\UserService;
 class AuthController extends Controller
 {
     protected $activityLog;
     protected $authService;
+    protected $userService;
 
-    public function __construct(ActivityLog $activityLog, AuthService $authService)
+    public function __construct(ActivityLog $activityLog, AuthService $authService, UserService $userService)
     {
         $this->activityLog = $activityLog;
         $this->authService = $authService;
+        $this->userService = $userService;
     }
     public function login(Request $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
         $user = Auth::user();
         $token = $this->authService->generatetoken($user);
         $user->update(['FCMtoken' => $request->FCM_token]);
         $this->activityLog->log($user->id, 'login', 'User logged in', '1');
-        Log::info('User logged in', ['user_id' => $user->id, 'email' => $user->email]);
         return response()->json([
             'success' => true,
             'full_name' => $user->full_name,
@@ -42,16 +43,14 @@ class AuthController extends Controller
     public function loginwithgoogle(Request $request)
     {
         $credentials = json_decode(env('FIREBASE_CREDENTIALS_JSON'), true);
-        //$factory = (new Factory)->withServiceAccount($credentials);
         $factory = (new Factory)->withServiceAccount(base_path('secret_key.json'));
-
         $auth = $factory->createAuth();
         try {
             $verifiedIdToken = $auth->verifyIdToken($request->id_token);
             $uid = $verifiedIdToken->claims()->get('sub');
             $userRecord = $auth->getUser($uid);
             $email = $verifiedIdToken->claims()->get('email');
-            $user = User::where('email', $email)->first();
+            $user = $this->userService->getuserbyemail($email);
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
@@ -86,7 +85,7 @@ class AuthController extends Controller
         'email' => 'required|email',
     ]);
 
-    $user = User::where('email', $request->email)->first();
+    $user =$this->userService->getuserbyemail($request->email);
     if (!$user) {
         return response()->json(['error' => 'Email not found'], 404);
     }
@@ -101,14 +100,7 @@ class AuthController extends Controller
 }
 public function resetPassword(Request $request)
 {
-
-    // $request->validate([
-    //     'email' => 'required|email',
-    //     'otp' => 'required|string',
-    //     'password' => 'required|string|min:6',
-    // ]);
-
-    $user = User::where('email', $request->email)->first();
+    $user = $this->userService->getuserbyemail($request->email);
 
     if (!$user) {
         return response()->json(['error' => 'User not found.'], 404);
@@ -128,14 +120,7 @@ public function resetPassword(Request $request)
     public function refreshtoken(Request $request)
     {
         $user = $request->user();
-        $payload = [
-            'id' => $user->id,
-            'role' => $user->role,
-            'iat' => time(),
-            'exp' => time() + (10 * 365 * 24 * 60 * 60),
-        ];
-
-        $token = JWT::encode($payload, config('jwt.key'), 'HS256');
+        $token = $this->authService->generatetoken($user);
         return response()->json([
             'success' => true,
             'data' => [

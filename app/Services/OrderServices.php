@@ -5,7 +5,6 @@ use App\Models\User;
 Use App\Models\status;
 use App\Http\Resources\OrderResource;
 use App\Models\OrderExchange;
-use Illuminate\Support\Facades\Log;
 class OrderServices
 {
     public function formatOrder(orders $order): array
@@ -37,23 +36,33 @@ class OrderServices
         return $final_cost;
     }
 
-    public function orderstatus($order_status){
-        switch ($order_status) {
-            case 'On the way':
-                $status = 7;
-                break;
-            case 'Delivered':
-                $status = 8;
-                break;
-            case 'Canceled':
-                $status = 9;
-                break;
-            case 'Delivered with exchange':
-                $status = 10;
-                break;
-        }
-        return $status;
+public function orderstatus($order_status)
+{
+    switch ($order_status) {
+        case 'On the way':
+            return 7;
+
+        case 'Delivered':
+            return 8;
+
+        case 'Canceled':
+            return 9;
+
+        case 'Delivered with exchange':
+            return 10;
+
+        case 'Exchange Collected':
+            return 15;
+
+        case 'Exchange Delivery Assigned':
+            return 16;
+        case 'Exchange Delivered':
+            return 17;
+
+        default:
+            return null;
     }
+}
 
     public function getorderbyid($order_id)
     {
@@ -62,6 +71,28 @@ class OrderServices
             return null;
         }
         return $order;
+    }
+
+    public function getorderbynumber($order_number)
+    {
+        $order = orders::where('order_number', $order_number)->first();
+        if (!$order) {
+            return null;
+        }
+        return $order;
+    }
+    public function getorderbystatuses($status_id,$driverid){
+        return Orders::select('id','order_number','status_id','type',
+        'priority','payment_status','estimated_delivery','actual_delivery',
+        'created_at','product_cost','delivery_fee','customer_id','shop_id',
+        'delivery_city','pickup_location_url','package_description',
+        'package_weight','special_instructions','pickup_phone','pickup_address')
+        ->where(function($query) use ($driverid) {
+                $query->where('delivery_driver_id', $driverid)
+                      ->orWhere('pickup_driver_id', $driverid);
+            })
+            ->whereIn('status_id', $status_id)
+            ->paginate(10);
     }
 
 }
