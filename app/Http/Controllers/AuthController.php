@@ -12,13 +12,16 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Services\ActivityLog;
 use Illuminate\Support\Facades\Hash;
+use App\Services\AuthService;
 class AuthController extends Controller
 {
     protected $activityLog;
+    protected $authService;
 
-    public function __construct(ActivityLog $activityLog)
+    public function __construct(ActivityLog $activityLog, AuthService $authService)
     {
         $this->activityLog = $activityLog;
+        $this->authService = $authService;
     }
     public function login(Request $request)
     {
@@ -27,15 +30,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $payload = [
-            'id' => $user->id,
-            'role' => $user->role,
-            'iat' => time(),
-            'exp' => time() + (10 * 365 * 24 * 60 * 60),
-        ];
-
-
-        $token = JWT::encode($payload, config('jwt.key'), 'HS256');
+        $token = $this->authService->generatetoken($user);
         $user->update(['FCMtoken' => $request->FCM_token]);
         $this->activityLog->log($user->id, 'login', 'User logged in', '1');
         Log::info('User logged in', ['user_id' => $user->id, 'email' => $user->email]);
@@ -60,14 +55,7 @@ class AuthController extends Controller
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
-            //$user = Auth::user();
-            $payload = [
-                'id' => $user->id,
-                'role' => $user->role,
-                'iat' => time(),
-                'exp' => time() + (10 * 365 * 24 * 60 * 60),
-            ];
-            $token = JWT::encode($payload, config('jwt.key'), 'HS256');
+            $token = $this->authService->generatetoken($user);
             $user->update(['FCMtoken' => $request->FCM_token]);
             $this->activityLog->log($user->id, 'login', 'User logged in with Google', '1');
             Log::info('User logged in with Google', ['user_id' => $user->id, 'email' => $user->email]);
@@ -108,7 +96,7 @@ class AuthController extends Controller
     $user->save();
 
     Mail::to($user->email)->send(new OTPMail($otp) );
-
+    $this->activityLog->log($user->id, 'password_reset_request', 'User requested password reset', '1');
     return response()->json(['message' => 'OTP sent to your email'], 200);
 }
 public function resetPassword(Request $request)
@@ -133,6 +121,7 @@ public function resetPassword(Request $request)
     $user->password = bcrypt($request->password);
     $user->otp = null;
     $user->save();
+    $this->activityLog->log($user->id, 'password_reset', 'User reset password', '1');
     return response()->json(['message' => 'Password successfully reset.']);
 }
 

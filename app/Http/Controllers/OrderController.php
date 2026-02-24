@@ -3,7 +3,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\orders;
 use App\Services\NotificationService;
-use Log;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\account_balances;
 use App\Services\OrderServices;
 use App\Services\ActivityLog;
@@ -81,9 +81,18 @@ class OrderController extends Controller
 
     public function showdriverarchive(Request $request)
     {
-        $status = [8, 10, 11, 12, 13];
+        $status = [8, 10, 11, 12, 13,17];
         $driverid = $request->auth_user->id;
-        $orders = orders::where('delivery_driver_id', $driverid)->whereIn('status_id', $status)->paginate(10);
+        $orders = Orders::select('id','order_number','status_id','type',
+        'priority','payment_status','estimated_delivery','actual_delivery',
+        'created_at','product_cost','delivery_fee','customer_id','shop_id',
+        'delivery_city','pickup_location_url','package_description',
+        'package_weight','special_instructions','pickup_phone','pickup_address')->where(function($query) use ($driverid) {
+                $query->where('delivery_driver_id', $driverid)
+                      ->orWhere('pickup_driver_id', $driverid);
+            })
+            ->whereIn('status_id', $status)
+            ->paginate(10);
         $ordersArray = $orders->map(fn($order) => $this->orderservice->formatOrder($order));
         return response()->json($ordersArray);
     }
@@ -92,10 +101,14 @@ class OrderController extends Controller
 
     public function showbydriver(Request $request)
     {
-        $status = [3, 5, 6, 7, 12];
+        $status = [3, 5, 6, 7, 12,15,16];
         $driverid = $request->auth_user->id;
 
-        $orders = Orders::where(function($query) use ($driverid) {
+        $orders = Orders::select('id','order_number','status_id','type',
+        'priority','payment_status','estimated_delivery','actual_delivery',
+        'created_at','product_cost','delivery_fee','customer_id','shop_id',
+        'delivery_city','pickup_location_url','package_description',
+        'package_weight','special_instructions','pickup_phone','pickup_address')->where(function($query) use ($driverid) {
                 $query->where('delivery_driver_id', $driverid)
                       ->orWhere('pickup_driver_id', $driverid);
             })
@@ -116,20 +129,7 @@ class OrderController extends Controller
         $order = orders::where('order_number', $request->order_number)->first();
         if (!$order)
             return response()->json(['message' => 'Order not found', $order], 404);
-        switch ($request->status) {
-            case 'On the way':
-                $status = 7;
-                break;
-            case 'Delivered':
-                $status = 8;
-                break;
-            case 'Canceled':
-                $status = 9;
-                break;
-            case 'Delivered with exchange':
-                $status = 10;
-                break;
-        }
+        $status = $this->orderservice->orderstatus($request->status);
         if(today()->greaterThan($order->estimated_delivery)){
             $status = 10; 
         }

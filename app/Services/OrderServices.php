@@ -5,6 +5,7 @@ use App\Models\User;
 Use App\Models\status;
 use App\Http\Resources\OrderResource;
 use App\Models\OrderExchange;
+use Illuminate\Support\Facades\Log;
 class OrderServices
 {
     public function formatOrder(orders $order): array
@@ -31,9 +32,27 @@ class OrderServices
         if(!$orderexchange){
             return null;
         }
-        $original_order=orders::find($orderexchange->order_id);
-        $final_cost=$total_cost-($original_order->product_cost+$original_order->delivery_fee);
+        $original_order=orders::find($orderexchange->original_order);
+        $final_cost=$total_cost-$original_order->product_cost;
         return $final_cost;
+    }
+
+    public function orderstatus($order_status){
+        switch ($order_status) {
+            case 'On the way':
+                $status = 7;
+                break;
+            case 'Delivered':
+                $status = 8;
+                break;
+            case 'Canceled':
+                $status = 9;
+                break;
+            case 'Delivered with exchange':
+                $status = 10;
+                break;
+        }
+        return $status;
     }
 
     public function getorderbyid($order_id)
