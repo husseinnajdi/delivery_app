@@ -44,7 +44,11 @@ public function orderstatus($order_status)
         case 'Pickup Assigned':
             return 3;
         case 'Picked Up':
+            return 4;
+        case 'At Warehouse':
             return 5;
+        case 'Out For Delivery':
+            return 7;
         case 'Delivered':
             return 8;
 
