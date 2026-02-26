@@ -43,7 +43,8 @@ public function orderstatus($order_status)
             return 7;
         case 'Pickup Assigned':
             return 3;
-
+        case 'Picked Up':
+            return 5;
         case 'Delivered':
             return 8;
 
