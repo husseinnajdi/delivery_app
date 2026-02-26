@@ -39,8 +39,6 @@ class OrderServices
 public function orderstatus($order_status)
 {
     switch ($order_status) {
-        case 'On the way':
-            return 7;
         case 'Pickup Assigned':
             return 3;
         case 'Picked Up':
@@ -49,20 +47,16 @@ public function orderstatus($order_status)
             return 5;
         case 'Delivery Assigned':
             return 6;
-        case 'Out For Delivery':
+        case 'Out for Delivery':
             return 7;
         case 'Delivered':
             return 8;
-
         case 'Canceled':
             return 9;
-
         case 'Delivered with exchange':
             return 10;
-
         case 'Exchange Collected':
             return 15;
-
         case 'Exchange Delivery Assigned':
             return 16;
         case 'Exchange Delivered':
