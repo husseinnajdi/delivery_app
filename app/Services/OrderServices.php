@@ -41,6 +41,8 @@ public function orderstatus($order_status)
     switch ($order_status) {
         case 'On the way':
             return 7;
+        case 'Pickup Assigned':
+            return 3;
 
         case 'Delivered':
             return 8;
