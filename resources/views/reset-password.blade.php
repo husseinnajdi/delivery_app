@@ -45,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $data = json_decode($response, true);
 
-            $data = json_decode($response, true);
 
             if ($httpCode >= 200 && $httpCode < 300) {
                 $alertMessage = $data['message'] ?? 'Password reset successfully.';

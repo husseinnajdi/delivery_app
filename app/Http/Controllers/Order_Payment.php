@@ -16,15 +16,11 @@ class Order_Payment extends Controller
 
     public function show($id)
     {
-        return orderpayment::where('order_id', $id)->get();
-    }
-    public function getbyorderid($id)
-    {
-        return orderpayment::where('order_id', $id)->first();
+        return $this->paymentService->getorderpayment($id);
     }
     public function update(Request $request)
     {
-        $payment = orderpayment::where('order_id', $request->order_id)->first();
+        $payment = $this->paymentService->getorderpayment($request->id);
         if ($payment) {
             $payment->update([
                 'amount' => $request->amount,

@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Orders;
 class PaymentService
 {
+    public function getorderpayment($id){
+    return order_payment::find($id);
+}
     public function createpayment($request){
         return DB::transaction(function () use($request){
             $order=orders::where('order_number',$request->order_number)->firstOrFail();
