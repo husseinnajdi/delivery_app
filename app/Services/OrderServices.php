@@ -47,6 +47,8 @@ public function orderstatus($order_status)
             return 4;
         case 'At Warehouse':
             return 5;
+        case 'Delivery Assigned':
+            return 6;
         case 'Out For Delivery':
             return 7;
         case 'Delivered':
