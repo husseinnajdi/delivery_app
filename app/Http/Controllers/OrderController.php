@@ -26,7 +26,7 @@ class OrderController extends Controller
 
     public function showbydriver(Request $request)
     {
-        $status = [3, 5, 6, 7, 12,14,16];
+        $status = [3,4, 5, 6, 7, 12,14,16];
         $driverid = $request->auth_user->id;
 
         $orders = $this->orderservice->getorderbystatuses($status, $driverid);
