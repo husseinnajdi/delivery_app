@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use App\Mail\OTPMail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Passwords\PasswordBroker;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Mail\PasswordResetMail;
 use Illuminate\Support\Facades\Auth;
 use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Services\ActivityLog;
-use Illuminate\Support\Facades\Hash;
 use App\Services\AuthService;
 use App\Services\UserService;
 class AuthController extends Controller
@@ -79,42 +82,42 @@ class AuthController extends Controller
         );
         return response()->json(['message' => 'Successfully logged out']);
     }
-    public function forgetPassword(Request $request)
+public function forgetPassword(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
     ]);
 
-    $user =$this->userService->getuserbyemail($request->email);
+    $user = $this->userService->getuserbyemail($request->email);
     if (!$user) {
-        return response()->json(['error' => 'Email not found'], 404);
+        return response()->json(['message' => 'If this email exists, a reset link has been sent.'], 200);
     }
+    $broker = Password::broker();
+    $token = app(PasswordBroker::class)->createToken($user);
+    Mail::to($user->email)->send(new PasswordResetMail($token, $user->email));
 
-    $otp = rand(1000, 9999);
-    $user->otp= $otp;
-    $user->save();
-
-    Mail::to($user->email)->send(new OTPMail($otp) );
     $this->activityLog->log($user->id, 'password_reset_request', 'User requested password reset', '1');
-    return response()->json(['message' => 'OTP sent to your email'], 200);
+
+    return response()->json(['message' => 'If this email exists, a reset link has been sent.'], 200);
 }
+
 public function resetPassword(Request $request)
 {
-    $user = $this->userService->getuserbyemail($request->email);
+    $status = Password::broker()->reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->password = Hash::make($password);
+            $user->save();
+        }
+    );
 
-    if (!$user) {
-        return response()->json(['error' => 'User not found.'], 404);
+    if ($status === Password::PASSWORD_RESET) {
+         $user = $this->userService->getuserbyemail($request->email);
+         $this->activityLog->log($user->id, 'password_reset', 'User reset password', '1');
+        return response()->json(['message' => 'Password reset successfully.'], 200);
     }
 
-    if ((string)$user->otp !== (string)$request->otp) {
-        return response()->json(['error' => 'Invalid OTP.'], 400);
-    }
-
-    $user->password = bcrypt($request->password);
-    $user->otp = null;
-    $user->save();
-    $this->activityLog->log($user->id, 'password_reset', 'User reset password', '1');
-    return response()->json(['message' => 'Password successfully reset.']);
+    return response()->json(['error' => __($status)], 400);
 }
 
     public function refreshtoken(Request $request)
