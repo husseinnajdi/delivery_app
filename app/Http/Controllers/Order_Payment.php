@@ -46,7 +46,7 @@ class Order_Payment extends Controller
                 $this->accountBalances->statusupdatebalance(
                     $request->auth_user->id,
                     $request->amount_usd,
-                    $request->amount_lbp
+                    
                 );
             } catch (\Exception $e) {
                 return response()->json(['message' => 'Payment created but failed to update balance', 'error' => $e->getMessage()], 500);
