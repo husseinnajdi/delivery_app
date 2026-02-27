@@ -3,7 +3,7 @@ namespace App\Services;
 
 use App\Models\order_payment;
 use Illuminate\Support\Facades\DB;
-use App\Models\Orders;
+use App\Models\orders;
 class PaymentService
 {
     public function getorderpayment($id){

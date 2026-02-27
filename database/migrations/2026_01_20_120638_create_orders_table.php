@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('delivery_floor', 20);
             $table->string('delivery_location_url', 500)->nullable();
             $table->text('package_description')->nullable();
-            $table->decimal('package_weight', 10, 2)->nullable();
+            $table->double('package_weight')->nullable();
             $table->string('package_dimensions', 50)->nullable();
             $table->decimal('product_cost', 10, 2)->default(0.00);
             $table->unsignedBigInteger('transportation_type_id')->nullable()->index();
