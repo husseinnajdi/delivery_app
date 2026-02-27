@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\order_payment;
 use Illuminate\Support\Facades\DB;
 use App\Models\orders;
+use App\Models\account_balances;
 class PaymentService
 {
     public function getorderpayment($id){
@@ -28,6 +29,16 @@ class PaymentService
                 'actual_delivery'=>now(),
                 'status_id'=>$status_id
             ]);
+            $account_balance=account_balances::where('user_id',$order->delivery_driver_id)->first();
+            if($account_balance){
+                $account_balance->total_balance += $request->amount;
+                $account_balance->save();
+            }else{
+                account_balances::create([
+                    'user_id'=>$order->delivery_driver_id,
+                    'total_balance'=>$request->amount
+                ]);
+            }
             return $payment;
         });
     }
