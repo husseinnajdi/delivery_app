@@ -22,7 +22,7 @@ class PaymentService
                 'collected_at'=>now(),
                 'collected_by'=>$request->auth_user->id,
             ]);
-            //$status_id=$order->estimated_delivery<now() ? 10 : 8;
+            $status_id=$order->estimated_delivery<now() ? 10 : 8;
             $status_id=8;
             $order->update([
                 'payment_status'=>'paid',
